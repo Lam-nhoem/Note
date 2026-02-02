@@ -2,88 +2,64 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Bức Tường Trắng Trên Nền Đen</title>
+    <title>Bức Tường Vĩnh Cửu</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; }
-        #wall { width: 100vw; height: 75vh; position: relative; }
-        
-        /* Note màu trắng, chữ đen cho chất */
+        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; color: white; }
+        #wall { width: 100vw; height: 75vh; position: relative; overflow: auto; }
         .sticky-note {
             width: 150px; min-height: 100px; padding: 15px;
-            position: absolute; background-color: #fff; /* Đổi sang màu trắng */
-            color: #000; box-shadow: 0 10px 20px rgba(255,255,255,0.1);
-            cursor: pointer; word-wrap: break-word; font-size: 14px;
-            border-radius: 2px; transform: rotate(-1deg);
+            position: absolute; background-color: #fff; color: #000;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+            word-wrap: break-word; font-size: 14px; border-radius: 2px;
         }
-
         #dock {
             width: 100vw; height: 25vh; background-color: #111;
             border-top: 1px solid #333; display: flex;
             justify-content: center; align-items: center; gap: 20px;
             position: fixed; bottom: 0;
         }
-
-        #note-input {
-            width: 300px; height: 100px; background-color: #fff;
-            padding: 10px; border: none; outline: none;
-            font-size: 16px; resize: none;
-        }
-
-        #add-btn {
-            background-color: #fff; color: #000; border: none;
-            padding: 20px 30px; font-weight: bold; cursor: pointer;
-        }
+        #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; }
+        #add-btn { background-color: #fff; color: #000; border: none; padding: 20px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
     <div id="wall"></div>
-
     <div id="dock">
-        <textarea id="note-input" maxlength="500" placeholder="Viết lời nhắn trắng..."></textarea>
-        <button id="add-btn" onclick="addNote()">DÁN LÊN</button>
+        <textarea id="note-input" maxlength="500" placeholder="Viết lời nhắn vĩnh viễn..."></textarea>
+        <button id="add-btn" onclick="sendToCloud()">DÁN LÊN MÂY</button>
     </div>
 
     <script>
-        const wall = document.getElementById('wall');
-        const input = document.getElementById('note-input');
+        // THAY THÔNG SỐ FIREBASE CỦA ÔNG VÀO ĐÂY
+        const firebaseConfig = {
+            databaseURL: "https://TEN-DU-AN-CUA-ONG.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // 1. Hàm hiển thị note lên màn hình
-        function renderNote(text, x, y) {
+        // Lấy dữ liệu từ mây về và hiển thị
+        db.ref('notes').on('child_added', (snapshot) => {
+            const data = snapshot.val();
             const note = document.createElement('div');
             note.className = 'sticky-note';
-            note.innerText = text;
-            note.style.left = x;
-            note.style.top = y;
-            note.onclick = () => { note.remove(); saveAllNotes(); };
-            wall.appendChild(note);
-        }
+            note.innerText = data.text;
+            note.style.left = data.x;
+            note.style.top = data.y;
+            document.getElementById('wall').appendChild(note);
+        });
 
-        // 2. Lưu tất cả note vào bộ nhớ trình duyệt
-        function saveAllNotes() {
-            const notes = [];
-            document.querySelectorAll('.sticky-note').forEach(n => {
-                notes.push({ text: n.innerText, x: n.style.left, y: n.style.top });
-            });
-            localStorage.setItem('myNotes', JSON.stringify(notes));
-        }
-
-        // 3. Tải note cũ khi mở web
-        window.onload = () => {
-            const saved = JSON.parse(localStorage.getItem('myNotes') || "[]");
-            saved.forEach(n => renderNote(n.text, n.x, n.y));
-        };
-
-        function addNote() {
-            const text = input.value.trim();
+        function sendToCloud() {
+            const text = document.getElementById('note-input').value.trim();
             if (text === "") return;
 
-            const x = (Math.random() * (window.innerWidth - 170)) + 'px';
-            const y = (Math.random() * (window.innerHeight * 0.5)) + 'px';
+            const x = Math.random() * (window.innerWidth - 170) + 'px';
+            const y = Math.random() * (window.innerHeight * 0.5) + 'px';
 
-            renderNote(text, x, y);
-            saveAllNotes(); // Lưu lại ngay khi dán
-            input.value = "";
+            // Đẩy lên Firebase
+            db.ref('notes').push({ text, x, y });
+            document.getElementById('note-input').value = "";
         }
     </script>
 </body>
