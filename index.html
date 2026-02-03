@@ -21,8 +21,9 @@
             justify-content: center; align-items: center; gap: 20px;
             position: fixed; bottom: 0; z-index: 1000;
         }
-        #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; }
-        #add-btn { background-color: #fff; color: #000; border: none; padding: 20px; font-weight: bold; cursor: pointer; }
+        #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; border-radius: 5px; }
+        #add-btn { background-color: #fff; color: #000; border: none; padding: 20px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        #add-btn:active { transform: scale(0.95); background-color: #ccc; }
     </style>
 </head>
 <body>
@@ -33,21 +34,23 @@
     </div>
 
     <script>
-        // Cấu hình đã được điền sẵn từ hình của ông
+        // Cấu hình CHUẨN 100% theo hình image_744c84.jpg của Lâm
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
-            databaseURL: "https://note-15380-default-rtdb.asia-southeast1.firebasedatabase.app",
+            // Đã đổi sang link .firebaseio.com của khu vực Hoa Kỳ cho khớp với Firebase của ông
+            databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", 
             projectId: "note-15380",
             storageBucket: "note-15380.firebasestorage.app",
             messagingSenderId: "834783700925",
             appId: "1:834783700925:web:63768ddccd55b6c55a94d4"
         };
 
+        // Khởi tạo kết nối
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Hiển thị note
+        // Lấy dữ liệu và hiển thị lên tường
         db.ref('notes').on('value', (snapshot) => {
             const wall = document.getElementById('wall');
             wall.innerHTML = ""; 
@@ -59,12 +62,14 @@
                 note.innerText = data[id].text;
                 note.style.left = data[id].x;
                 note.style.top = data[id].y;
+                // Nhấn đúp để xóa note
                 note.ondblclick = () => { if(confirm("Xóa note này?")) db.ref('notes/'+id).remove(); };
                 makeDraggable(note, id);
                 wall.appendChild(note);
             }
         });
 
+        // Hàm kéo thả note
         function makeDraggable(el, id) {
             let isDragging = false;
             let offset = { x: 0, y: 0 };
@@ -87,10 +92,12 @@
             };
         }
 
+        // Hàm gửi dữ liệu lên Firebase
         function sendToCloud() {
             const input = document.getElementById('note-input');
             const text = input.value.trim();
             if (text === "") return;
+            // Tạo vị trí ngẫu nhiên cho note mới
             const x = (Math.random() * (window.innerWidth - 170)) + 'px';
             const y = (Math.random() * (window.innerHeight * 0.5)) + 'px';
             db.ref('notes').push({ text, x, y });
