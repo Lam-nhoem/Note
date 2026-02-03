@@ -23,14 +23,13 @@
         }
         #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; border-radius: 5px; }
         #add-btn { background-color: #fff; color: #000; border: none; padding: 20px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        #add-btn:active { transform: scale(0.95); background-color: #ccc; }
     </style>
 </head>
 <body>
     <div id="wall"></div>
     <div id="dock">
-        <textarea id="note-input" maxlength="500" placeholder="Hãy thử viết gì đó ! (Lưu ý : giới hạn 500 ký tự)"></textarea>
-        <button id="add-btn" onclick="sendToCloud()">DÁN</button>
+        <textarea id="note-input" maxlength="500" placeholder="Hãy Thử Viết Gì Đó ... (Giới hạn 500 kí tự)"></textarea>
+        <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
     </div>
 
     <script>
@@ -44,11 +43,9 @@
             appId: "1:834783700925:web:63768ddccd55b6c55a94d4"
         };
 
-        // Khởi tạo kết nối
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Lấy dữ liệu và hiển thị lên tường
         db.ref('notes').on('value', (snapshot) => {
             const wall = document.getElementById('wall');
             wall.innerHTML = ""; 
@@ -60,48 +57,41 @@
                 note.innerText = data[id].text;
                 note.style.left = data[id].x;
                 note.style.top = data[id].y;
-                // Nhấn đúp để xóa note
-                note.ondblclick = () => { if(confirm("Xóa note này?")) db.ref('notes/'+id).remove(); };
+                note.ondblclick = () => { if(confirm("Xóa note?")) db.ref('notes/'+id).remove(); };
                 makeDraggable(note, id);
                 wall.appendChild(note);
             }
         });
 
-        // Hàm kéo thả note
         function makeDraggable(el, id) {
-            let isDragging = false;
-            let offset = { x: 0, y: 0 };
-            el.onmousedown = (e) => {
-                isDragging = true;
-                offset.x = e.clientX - el.offsetLeft;
-                offset.y = e.clientY - el.offsetTop;
+            el.onmousedown = function(e) {
                 el.style.zIndex = 1000;
-            };
-            document.onmousemove = (e) => {
-                if (!isDragging) return;
-                el.style.left = (e.clientX - offset.x) + 'px';
-                el.style.top = (e.clientY - offset.y) + 'px';
-            };
-            document.onmouseup = () => {
-                if (isDragging) {
-                    isDragging = false;
-                    db.ref('notes/' + id).update({ x: el.style.left, y: el.style.top });
+                let shiftX = e.clientX - el.getBoundingClientRect().left;
+                let shiftY = e.clientY - el.getBoundingClientRect().top;
+                function moveAt(pageX, pageY) {
+                    el.style.left = pageX - shiftX + 'px';
+                    el.style.top = pageY - shiftY + 'px';
                 }
+                function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
+                document.addEventListener('mousemove', onMouseMove);
+                el.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    el.onmouseup = null;
+                    db.ref('notes/' + id).update({ x: el.style.left, y: el.style.top });
+                };
             };
+            el.ondragstart = function() { return false; };
         }
 
-        // Hàm gửi dữ liệu lên Firebase
         function sendToCloud() {
             const input = document.getElementById('note-input');
             const text = input.value.trim();
             if (text === "") return;
-            // Tạo vị trí ngẫu nhiên cho note mới
             const x = (Math.random() * (window.innerWidth - 170)) + 'px';
-            const y = (Math.random() * (window.innerHeight * 0.5)) + 'px';
+            const y = (Math.random() * (window.innerHeight * 0.4)) + 'px';
             db.ref('notes').push({ text, x, y });
             input.value = "";
         }
     </script>
 </body>
 </html>
-
