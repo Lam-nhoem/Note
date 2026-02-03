@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Bức Tường Note Của Lâm</title>
+    <title>Free Note</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
@@ -29,16 +29,14 @@
 <body>
     <div id="wall"></div>
     <div id="dock">
-        <textarea id="note-input" maxlength="500" placeholder="Viết gì đó... Nhấn đúp để xóa, đè chuột để kéo"></textarea>
-        <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
+        <textarea id="note-input" maxlength="500" placeholder="Hãy thử viết gì đó ! (Lưu ý : giới hạn 500 ký tự)"></textarea>
+        <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
-        // Cấu hình CHUẨN 100% theo hình image_744c84.jpg của Lâm
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
-            // Đã đổi sang link .firebaseio.com của khu vực Hoa Kỳ cho khớp với Firebase của ông
             databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", 
             projectId: "note-15380",
             storageBucket: "note-15380.firebasestorage.app",
@@ -106,3 +104,4 @@
     </script>
 </body>
 </html>
+
