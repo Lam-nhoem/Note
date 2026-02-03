@@ -6,7 +6,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; }
+        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
         #wall { width: 100vw; height: 75vh; position: relative; }
         .sticky-note {
             width: 150px; min-height: 100px; padding: 15px;
@@ -57,6 +57,7 @@
                 note.innerText = data[id].text;
                 note.style.left = data[id].x;
                 note.style.top = data[id].y;
+                // Chạm 2 lần trên đt hoặc click đúp trên mt để xóa
                 note.ondblclick = () => { if(confirm("Xóa note?")) db.ref('notes/'+id).remove(); };
                 makeDraggable(note, id);
                 wall.appendChild(note);
@@ -64,23 +65,39 @@
         });
 
         function makeDraggable(el, id) {
-            el.onmousedown = function(e) {
+            function startDragging(e) {
                 el.style.zIndex = 1000;
-                let shiftX = e.clientX - el.getBoundingClientRect().left;
-                let shiftY = e.clientY - el.getBoundingClientRect().top;
-                function moveAt(pageX, pageY) {
+                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+                let shiftX = clientX - el.getBoundingClientRect().left;
+                let shiftY = clientY - el.getBoundingClientRect().top;
+
+                function onMove(event) {
+                    let pageX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
+                    let pageY = event.type.includes('touch') ? event.touches[0].pageY : event.pageY;
                     el.style.left = pageX - shiftX + 'px';
                     el.style.top = pageY - shiftY + 'px';
                 }
-                function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
-                document.addEventListener('mousemove', onMouseMove);
-                el.onmouseup = function() {
-                    document.removeEventListener('mousemove', onMouseMove);
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, {passive: false});
+
+                function onEnd() {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('touchmove', onMove);
                     el.onmouseup = null;
+                    el.ontouchend = null;
                     db.ref('notes/' + id).update({ x: el.style.left, y: el.style.top });
-                };
-            };
-            el.ondragstart = function() { return false; };
+                }
+
+                el.onmouseup = onEnd;
+                el.ontouchend = onEnd;
+            }
+
+            el.onmousedown = startDragging;
+            el.ontouchstart = startDragging;
+            el.ondragstart = () => false;
         }
 
         function sendToCloud() {
