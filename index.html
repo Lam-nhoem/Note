@@ -2,19 +2,21 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Free Note</title>
+    <title>Free Note - Tùy Chỉnh Màu</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
         body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
         #wall { width: 100vw; height: 75vh; position: relative; }
+        
         .sticky-note {
             width: 150px; min-height: 100px; padding: 15px;
-            position: absolute; background-color: #fff; color: #000;
+            position: absolute; color: #000;
             box-shadow: 0 4px 15px rgba(255,255,255,0.2);
             word-wrap: break-word; font-size: 14px; border-radius: 2px;
             cursor: move; user-select: none; z-index: 10;
         }
+
         #dock {
             width: 100vw; height: 25vh; background-color: #111;
             border-top: 1px solid #333; display: flex;
@@ -22,6 +24,10 @@
             position: fixed; bottom: 0; z-index: 1000;
         }
         #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; border-radius: 5px; }
+        
+        /* Ô chọn màu cho người dùng */
+        #color-picker { width: 50px; height: 50px; border: none; cursor: pointer; background: none; }
+        
         #add-btn { background-color: #fff; color: #000; border: none; padding: 20px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
@@ -29,6 +35,7 @@
     <div id="wall"></div>
     <div id="dock">
         <textarea id="note-input" maxlength="500" placeholder="Hãy Thử Viết Gì Đó ... (Giới hạn 500 kí tự)"></textarea>
+        <input type="color" id="color-picker" value="#ffffff"> 
         <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
     </div>
 
@@ -57,8 +64,11 @@
                 note.innerText = data[id].text;
                 note.style.left = data[id].x;
                 note.style.top = data[id].y;
-                // Chạm 2 lần trên đt hoặc click đúp trên mt để xóa
+                note.style.backgroundColor = data[id].color || '#fff'; // Màu do ông chọn
+
+                // Giữ nguyên nhấn đúp để xóa theo ý ông
                 note.ondblclick = () => { if(confirm("Xóa note?")) db.ref('notes/'+id).remove(); };
+                
                 makeDraggable(note, id);
                 wall.appendChild(note);
             }
@@ -69,7 +79,6 @@
                 el.style.zIndex = 1000;
                 let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
                 let shiftX = clientX - el.getBoundingClientRect().left;
                 let shiftY = clientY - el.getBoundingClientRect().top;
 
@@ -86,29 +95,28 @@
                 function onEnd() {
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('touchmove', onMove);
-                    el.onmouseup = null;
-                    el.ontouchend = null;
                     db.ref('notes/' + id).update({ x: el.style.left, y: el.style.top });
                 }
-
-                el.onmouseup = onEnd;
-                el.ontouchend = onEnd;
+                el.onmouseup = onEnd; el.ontouchend = onEnd;
             }
-
-            el.onmousedown = startDragging;
-            el.ontouchstart = startDragging;
+            el.onmousedown = startDragging; el.ontouchstart = startDragging;
             el.ondragstart = () => false;
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
+            const colorInput = document.getElementById('color-picker');
             const text = input.value.trim();
             if (text === "") return;
+            
             const x = (Math.random() * (window.innerWidth - 170)) + 'px';
             const y = (Math.random() * (window.innerHeight * 0.4)) + 'px';
-            db.ref('notes').push({ text, x, y });
+            const color = colorInput.value; // Lấy màu từ thanh công cụ
+            
+            db.ref('notes').push({ text, x, y, color });
             input.value = "";
         }
     </script>
 </body>
 </html>
+
