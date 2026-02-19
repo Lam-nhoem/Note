@@ -37,7 +37,7 @@
     <div id="wall"></div>
     <div id="dock">
         <div id="mode-toggle" onclick="toggleMode()">
-            PHÒNG 
+            PHÒNG
             <span id="current-room-text">CÔNG CỘNG</span>
         </div>
         <textarea id="note-input" maxlength="500" placeholder="Viết gì đó..."></textarea>
@@ -65,80 +65,98 @@
         let currentPath = 'notes'; 
 
         function toggleMode() {
+            // Ngắt toàn bộ kết nối trước đó để tránh xung đột
+            db.ref('notes').off();
+            db.ref(`notes/private/${userId}`).off();
+            
             isPrivate = !isPrivate;
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
+            
             document.getElementById('current-room-text').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             document.getElementById('current-room-text').style.color = isPrivate ? '#ff00ff' : '#00ff00';
+            
+            document.getElementById('wall').innerHTML = ""; // Xóa sạch màn hình trước khi load mới
             loadNotes(); 
         }
 
         function loadNotes() {
-            // "Chốt chặn" đường dẫn tại thời điểm tải phòng để không bị nhảy
-            const roomAtLoad = currentPath; 
-            db.ref(roomAtLoad).off();
-            db.ref(roomAtLoad).on('value', (snapshot) => {
+            const activePath = currentPath; // Khóa đường dẫn tại thời điểm này
+            db.ref(activePath).on('value', (snapshot) => {
                 const wall = document.getElementById('wall');
                 wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
                 
-                for (let id in data) {
-                    if (data[id] && typeof data[id] === 'object' && data[id].text) {
+                Object.keys(data).forEach(id => {
+                    const item = data[id];
+                    // Chỉ hiển thị nếu đúng là Note (có text)
+                    if (item && typeof item === 'object' && item.text) {
                         const note = document.createElement('div');
                         note.className = 'sticky-note';
-                        note.innerText = data[id].text;
-                        note.style.left = data[id].x;
-                        note.style.top = data[id].y;
-                        note.style.backgroundColor = data[id].color || '#fff';
+                        note.innerText = item.text;
+                        note.style.left = item.x || '50px';
+                        note.style.top = item.y || '50px';
+                        note.style.backgroundColor = item.color || '#fff';
                         
-                        // FIX LỖI XÓA: Truyền đúng địa chỉ phòng của tờ note đó
-                        note.ondblclick = (e) => {
-                            e.preventDefault();
-                            if(confirm("Xóa note này?")) db.ref(`${roomAtLoad}/${id}`).remove();
+                        // Xử lý Xóa triệt để
+                        note.ondblclick = () => {
+                            if(confirm("Xóa note này?")) {
+                                db.ref(`${activePath}/${id}`).remove();
+                            }
                         };
 
-                        // FIX LỖI NHẢY PHÒNG: Khóa chặt tờ note vào đúng phòng của nó
-                        makeDraggable(note, id, roomAtLoad);
+                        makeDraggable(note, id, activePath);
                         wall.appendChild(note);
                     }
-                }
+                });
             });
         }
 
-        function makeDraggable(el, id, roomPath) {
+        function makeDraggable(el, id, path) {
+            let isDragging = false;
+            
             function startDragging(e) {
+                isDragging = true;
                 el.style.zIndex = 1000;
-                let clientX = (e.type === 'touchstart') ? e.touches[0].clientX : e.clientX;
-                let clientY = (e.type === 'touchstart') ? e.touches[0].clientY : e.clientY;
+                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 let shiftX = clientX - el.getBoundingClientRect().left;
                 let shiftY = clientY - el.getBoundingClientRect().top;
 
                 function onMove(event) {
-                    let pageX = (event.type === 'touchmove') ? event.touches[0].pageX : event.pageX;
-                    let pageY = (event.type === 'touchmove') ? event.touches[0].pageY : event.pageY;
+                    if (!isDragging) return;
+                    let pageX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
+                    let pageY = event.type.includes('touch') ? event.touches[0].pageY : event.pageY;
                     el.style.left = pageX - shiftX + 'px';
                     el.style.top = pageY - shiftY + 'px';
                 }
 
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('touchmove', onMove, {passive: false});
-
                 function onEnd() {
+                    if (isDragging) {
+                        db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+                        isDragging = false;
+                    }
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('touchmove', onMove);
-                    // Lưu về đúng cái roomPath đã được khóa lúc nãy
-                    db.ref(`${roomPath}/${id}`).update({ x: el.style.left, y: el.style.top });
+                    document.removeEventListener('mouseup', onEnd);
+                    document.removeEventListener('touchend', onEnd);
                 }
-                el.onmouseup = onEnd; el.ontouchend = onEnd;
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, {passive: false});
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchend', onEnd);
             }
-            el.onmousedown = startDragging; el.ontouchstart = startDragging;
+            
+            el.onmousedown = startDragging;
+            el.ontouchstart = startDragging;
             el.ondragstart = () => false;
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
             const text = input.value.trim();
-            if (text === "") return;
+            if (!text) return;
             const x = (Math.random() * (window.innerWidth - 170)) + 'px';
             const y = (Math.random() * (window.innerHeight * 0.4)) + 'px';
             const color = document.getElementById('color-picker').value;
@@ -150,8 +168,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
