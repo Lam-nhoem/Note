@@ -2,13 +2,12 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Free Note - Bản Full Tâm Huyết</title>
+    <title>Free Note - Cứu Dữ Liệu</title>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
         body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
         #wall { width: 100vw; height: 75vh; position: relative; }
-        
         .sticky-note {
             width: 150px; min-height: 100px; padding: 15px;
             position: absolute; color: #000;
@@ -16,24 +15,19 @@
             word-wrap: break-word; font-size: 14px; border-radius: 5px;
             cursor: move; user-select: none; z-index: 10;
         }
-
         #dock {
             width: 100vw; height: 25vh; background-color: #111;
             border-top: 1px solid #333; display: flex;
             justify-content: center; align-items: center; gap: 15px;
             position: fixed; bottom: 0; z-index: 1000;
         }
-
-        /* Nút chuyển đổi phòng ở góc trái */
         #mode-toggle {
             position: absolute; left: 20px; 
             background: #222; color: #888; border: 1px solid #444;
             padding: 8px 12px; border-radius: 8px; cursor: pointer;
             font-size: 11px; display: flex; flex-direction: column; align-items: center;
-            transition: 0.3s;
         }
         #mode-toggle span { font-weight: bold; color: #00ff00; margin-top: 2px; font-size: 14px; }
-
         #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; border-radius: 5px; background: #eee; }
         #color-picker { width: 45px; height: 45px; border: none; cursor: pointer; background: none; }
         #add-btn { background-color: #fff; color: #000; border: none; padding: 15px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; }
@@ -46,14 +40,12 @@
             PHÒNG HIỆN TẠI
             <span id="current-room-text">CÔNG CỘNG</span>
         </div>
-
         <textarea id="note-input" maxlength="500" placeholder="Hãy thử viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff"> 
         <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
     </div>
 
     <script>
-        // Cấu hình Firebase của ông
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -67,54 +59,46 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Quản lý ID máy để làm phòng riêng
-        let userId = localStorage.getItem('note_user_id');
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('note_user_id', userId);
-        }
+        let userId = localStorage.getItem('note_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
+        localStorage.setItem('note_user_id', userId);
 
         let isPrivate = false;
-        let currentPath = 'notes'; // Mặc định là 'notes' để hiện lại dữ liệu cũ
+        let currentPath = 'notes'; 
 
         function toggleMode() {
             isPrivate = !isPrivate;
-            // Nếu cá nhân thì vào private, nếu công cộng thì về 'notes' gốc
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
-            
-            const btnText = document.getElementById('current-room-text');
-            btnText.innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            btnText.style.color = isPrivate ? '#ff00ff' : '#00ff00';
-            
+            document.getElementById('current-room-text').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            document.getElementById('current-room-text').style.color = isPrivate ? '#ff00ff' : '#00ff00';
             loadNotes(); 
         }
 
-        // Tải dữ liệu từ Firebase
         function loadNotes() {
-            db.ref(currentPath).off(); // Tắt kết nối cũ trước khi đổi phòng
+            db.ref(currentPath).off();
             db.ref(currentPath).on('value', (snapshot) => {
                 const wall = document.getElementById('wall');
                 wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
+                
                 for (let id in data) {
-                    const note = document.createElement('div');
-                    note.className = 'sticky-note';
-                    note.innerText = data[id].text;
-                    note.style.left = data[id].x;
-                    note.style.top = data[id].y;
-                    note.style.backgroundColor = data[id].color || '#fff';
-                    
-                    // Nhấn đúp để xóa
-                    note.ondblclick = () => { if(confirm("Xóa note này?")) db.ref(`${currentPath}/${id}`).remove(); };
-                    
-                    makeDraggable(note, id);
-                    wall.appendChild(note);
+                    // CHỖ QUAN TRỌNG: Chỉ hiện nếu nó là 1 tờ note (có text)
+                    // Bỏ qua cái folder 'private' nếu đang ở chế độ công cộng
+                    if (data[id] && typeof data[id] === 'object' && data[id].text) {
+                        const note = document.createElement('div');
+                        note.className = 'sticky-note';
+                        note.innerText = data[id].text;
+                        note.style.left = data[id].x;
+                        note.style.top = data[id].y;
+                        note.style.backgroundColor = data[id].color || '#fff';
+                        note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
+                        makeDraggable(note, id);
+                        wall.appendChild(note);
+                    }
                 }
             });
         }
 
-        // Hàm kéo thả "thần thánh" cho cả điện thoại và máy tính
         function makeDraggable(el, id) {
             function startDragging(e) {
                 el.style.zIndex = 1000;
@@ -122,17 +106,14 @@
                 let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 let shiftX = clientX - el.getBoundingClientRect().left;
                 let shiftY = clientY - el.getBoundingClientRect().top;
-
                 function onMove(event) {
                     let pageX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
                     let pageY = event.type.includes('touch') ? event.touches[0].pageY : event.pageY;
                     el.style.left = pageX - shiftX + 'px';
                     el.style.top = pageY - shiftY + 'px';
                 }
-
                 document.addEventListener('mousemove', onMove);
                 document.addEventListener('touchmove', onMove, {passive: false});
-
                 function onEnd() {
                     document.removeEventListener('mousemove', onMove);
                     document.removeEventListener('touchmove', onMove);
@@ -146,23 +127,20 @@
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
-            const colorInput = document.getElementById('color-picker');
             const text = input.value.trim();
             if (text === "") return;
-            
             const x = (Math.random() * (window.innerWidth - 170)) + 'px';
             const y = (Math.random() * (window.innerHeight * 0.4)) + 'px';
-            const color = colorInput.value;
-            
+            const color = document.getElementById('color-picker').value;
             db.ref(currentPath).push({ text, x, y, color });
             input.value = "";
         }
 
-        // Chạy lần đầu tiên
         loadNotes();
     </script>
 </body>
 </html>
+
 
 
 
