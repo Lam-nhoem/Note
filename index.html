@@ -13,13 +13,13 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn cố định (Static) */
+        /* Bảng hướng dẫn cố định */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 200px; background: rgba(30, 30, 30, 0.9);
             border: 1px solid #444; border-radius: 10px;
             padding: 15px; z-index: 2000; font-size: 12px;
-            pointer-events: none; /* Để không vướng khi kéo nền */
+            pointer-events: none;
         }
         #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 14px; }
         #guide-box p { margin: 4px 0; color: #bbb; }
@@ -57,9 +57,9 @@
 <body>
 
     <div id="guide-box">
-        <h3> UPDATE.1 🚀 </h3>
+        <h3>🚀 VŨ TRỤ VÔ HẠN</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian.</p>
-        <p>- <b>private room:</b> Mã Id sẽ đóng vai trò như là tài khoản của bạn, nhập mã id để vào phòng cá nhân, mỗi 1 mã id là 1 phòng cá nhân.</p>
+        <p>- <b>private room:</b> Nhập Mã ID rồi đổi phòng để bí mật.</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
     </div>
 
@@ -100,7 +100,6 @@
         let isPrivate = false;
         let currentPath = 'notes';
 
-        // Xử lý kéo nền (Infinite Canvas)
         const viewport = document.getElementById('viewport');
         const wall = document.getElementById('wall');
         let isPanning = false, startX, startY, wallLeft = 0, wallTop = 0;
@@ -119,76 +118,4 @@
 
         function updateUserId(val) {
             userId = val.trim() || userId;
-            localStorage.setItem('note_user_id', userId);
-            if(isPrivate) loadNotes();
-        }
-
-        function toggleMode() {
-            isPrivate = !isPrivate;
-            currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
-            document.getElementById('room-status').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            document.getElementById('room-status').style.color = isPrivate ? '#ff00ff' : '#00ff00';
-            loadNotes();
-        }
-
-        function loadNotes() {
-            db.ref(currentPath).on('value', (snapshot) => {
-                wall.innerHTML = "";
-                const data = snapshot.val();
-                if(!data) return;
-                Object.keys(data).forEach(id => {
-                    const item = data[id];
-                    const note = document.createElement('div');
-                    note.className = 'sticky-note';
-                    note.contentEditable = "true";
-                    note.innerText = item.text;
-                    note.style.left = item.x; note.style.top = item.y;
-                    note.style.backgroundColor = item.color || '#fff';
-                    note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
-                    note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
-                    makeDraggable(note, id);
-                    wall.appendChild(note);
-                });
-            });
-        }
-
-        function makeDraggable(el, id) {
-            let isDragging = false;
-            el.onmousedown = (e) => {
-                if(document.activeElement === el) return;
-                e.stopPropagation(); isDragging = true;
-                let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
-                const onMove = (ev) => {
-                    if(!isDragging) return;
-                    el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
-                };
-                const onEnd = () => {
-                    if(isDragging) {
-                        db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
-                        isDragging = false;
-                    }
-                    window.removeEventListener('mousemove', onMove);
-                };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onEnd);
-            };
-        }
-
-        function sendToCloud() {
-            const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-            // Dán note vào đúng vị trí đang nhìn thấy
-            const x = (Math.abs(wallLeft) + 50) + 'px';
-            const y = (Math.abs(wallTop) + 50) + 'px';
-            db.ref(currentPath).push({
-                text: input.value, x, y,
-                color: document.getElementById('color-picker').value
-            });
-            input.value = "";
-        }
-        loadNotes();
-    </script>
-</body>
-</html>
-
-
+            localStorage.setItem('note_
