@@ -4,46 +4,35 @@
     <meta charset="UTF-8">
     <title>Free Note - made by bad guy</title>
     <link rel="icon" href="unnamed-1.jpg">
-    <link rel="apple-touch-icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { 
-            background-color: #000; margin: 0; padding: 0;
-            font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
-        }
-
-        /* Bảng hướng dẫn cố định - Đã cập nhật UPDATE.2 của Lâm */
+        body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
+        
+        /* Bảng hướng dẫn - Thu nhỏ và dời lên góc để không chắn chỗ */
         #guide-box {
-            position: fixed; top: 20px; left: 20px;
-            width: 250px; background: rgba(30, 30, 30, 0.9);
-            border: 1px solid #444; border-radius: 10px;
-            padding: 15px; z-index: 2000; font-size: 13px;
-            pointer-events: none; /* QUAN TRỌNG: Để click xuyên qua xóa note bug ở dưới */
+            position: fixed; top: 10px; left: 10px; width: 230px; 
+            background: rgba(40, 40, 40, 0.95); border: 2px solid #00ff00; 
+            border-radius: 8px; padding: 12px; z-index: 50; font-size: 12px;
+            pointer-events: auto; /* Cho phép tương tác bình thường */
         }
-        #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 16px; }
-        #guide-box p { margin: 6px 0; color: #bbb; line-height: 1.4; }
+        #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 14px; }
+        #guide-box p { margin: 4px 0; color: #eee; line-height: 1.3; }
 
-        /* Không gian vô hạn */
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
-        #wall { 
-            position: absolute; width: 10000px; height: 10000px; 
-            top: 0; left: 0; 
-            background-image: radial-gradient(#333 1px, transparent 1px);
-            background-size: 50px 50px; 
-        }
+        #wall { position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; }
 
         .sticky-note {
             width: 170px; min-height: 100px; padding: 12px;
             position: absolute; color: #000; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(255,255,255,0.1);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
-            z-index: 100;
+            z-index: 100; user-select: none;
         }
 
         #dock {
             position: fixed; bottom: 0; width: 100%; height: 110px;
-            background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333;
+            background: rgba(20, 20, 20, 0.95); border-top: 1px solid #444;
             display: flex; justify-content: center; align-items: center; gap: 15px; z-index: 1000;
         }
 
@@ -59,22 +48,18 @@
     <div id="guide-box">
         <h3>UPDATE.2 🚀</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
-        <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
+        <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là tài khoản của bạn. Nhập mã để vào phòng cá nhân.</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
-        <p>- <b>delete:</b> Double click để xóa note.</p>
+        <p>- <b>delete:</b> NHẤN ĐÚP (Double Click) để xóa.</p>
     </div>
 
-    <div id="viewport">
-        <div id="wall"></div>
-    </div>
+    <div id="viewport"><div id="wall"></div></div>
 
     <div id="dock">
-        <div id="room-btn" onclick="toggleMode()">
-            Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span>
-        </div>
+        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
         <div class="input-group">
             <span style="font-size: 9px; color: #777;">MÃ ID:</span>
-            <input type="text" id="user-id-input" placeholder="Mã..." onchange="updateUserId(this.value)">
+            <input type="text" id="user-id-input" onchange="updateUserId(this.value)">
         </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; cursor: pointer;">
@@ -96,13 +81,12 @@
 
         let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = userId;
-        localStorage.setItem('note_user_id', userId);
 
-        let isPrivate = false, currentPath = 'notes';
-        const viewport = document.getElementById('viewport');
+        let wallLeft = 0, wallTop = 0, isPanning = false, startX, startY;
         const wall = document.getElementById('wall');
-        let isPanning = false, startX, startY, wallLeft = 0, wallTop = 0;
+        const viewport = document.getElementById('viewport');
 
+        // Di chuyển vũ trụ
         viewport.onmousedown = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true; viewport.style.cursor = 'grabbing';
@@ -115,12 +99,10 @@
         };
         window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
 
-        function updateUserId(val) {
-            userId = val.trim() || userId;
-            localStorage.setItem('note_user_id', userId);
-            if(isPrivate) loadNotes();
-        }
+        let isPrivate = false, currentPath = 'notes';
 
+        function updateUserId(val) { userId = val.trim() || userId; localStorage.setItem('note_user_id', userId); if(isPrivate) loadNotes(); }
+        
         function toggleMode() {
             isPrivate = !isPrivate;
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
@@ -135,14 +117,25 @@
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
+                    const item = data[id];
                     const note = document.createElement('div');
                     note.className = 'sticky-note';
                     note.contentEditable = "true";
-                    note.innerText = data[id].text;
-                    note.style.left = data[id].x; note.style.top = data[id].y;
-                    note.style.backgroundColor = data[id].color || '#fff';
+                    note.innerText = item.text;
+                    note.style.left = item.x; note.style.top = item.y;
+                    note.style.backgroundColor = item.color || '#fff';
+                    
+                    // LƯU KHI SỬA
                     note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
-                    note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
+                    
+                    // LỆNH XÓA (FIXED)
+                    note.ondblclick = (e) => {
+                        e.stopPropagation();
+                        if(confirm("Xóa tờ note này?")) {
+                            db.ref(`${currentPath}/${id}`).remove();
+                        }
+                    };
+
                     makeDraggable(note, id);
                     wall.appendChild(note);
                 });
@@ -150,19 +143,28 @@
         }
 
         function makeDraggable(el, id) {
+            let sX, sY;
             el.onmousedown = (e) => {
+                // Nếu đang gõ chữ thì không cho kéo
                 if(document.activeElement === el) return;
                 e.stopPropagation();
-                let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
-                const onMove = (ev) => {
-                    el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
+                
+                sX = e.clientX - el.offsetLeft;
+                sY = e.clientY - el.offsetTop;
+
+                const moveHandler = (ev) => {
+                    el.style.left = (ev.clientX - sX) + 'px';
+                    el.style.top = (ev.clientY - sY) + 'px';
                 };
-                const onEnd = () => {
+
+                const upHandler = () => {
                     db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mousemove', moveHandler);
+                    window.removeEventListener('mouseup', upHandler);
                 };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onEnd);
+
+                window.addEventListener('mousemove', moveHandler);
+                window.addEventListener('mouseup', upHandler);
             };
         }
 
@@ -171,8 +173,8 @@
             if (!input.value.trim()) return;
             db.ref(currentPath).push({
                 text: input.value,
-                x: (Math.abs(wallLeft) + 60) + 'px',
-                y: (Math.abs(wallTop) + 60) + 'px',
+                x: (Math.abs(wallLeft) + 100) + 'px',
+                y: (Math.abs(wallTop) + 100) + 'px',
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
