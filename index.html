@@ -3,53 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <title>Free Note - made by bad guy</title>
-    
     <link rel="icon" href="unnamed-1.jpg">
     <link rel="apple-touch-icon" href="unnamed-1.jpg">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Free Note">
-
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
-        #wall { width: 100vw; height: 75vh; position: relative; }
+        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; }
+        
+        /* Không gian vô hạn */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
+        #wall { 
+            position: absolute; width: 5000px; height: 5000px; 
+            top: -2000px; left: -2000px; 
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 40px 40px; 
+        }
+
         .sticky-note {
             width: 150px; min-height: 100px; padding: 15px;
             position: absolute; color: #000;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
             word-wrap: break-word; font-size: 14px; border-radius: 8px;
-            cursor: move; user-select: none; z-index: 10;
+            cursor: move; user-select: none;
         }
+
         #dock {
-            width: 100vw; height: 25vh; background-color: #111;
+            width: 100vw; height: 120px; background-color: rgba(17, 17, 17, 0.9);
             border-top: 1px solid #333; display: flex;
             justify-content: center; align-items: center; gap: 15px;
             position: fixed; bottom: 0; z-index: 1000;
         }
+
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 5px; border-radius: 4px; width: 100px; text-align: center; }
+        #note-input { width: 250px; height: 60px; padding: 10px; border-radius: 5px; border: none; }
+        #add-btn { background: #fff; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; height: 100%; }
+        
         #mode-toggle {
-            position: absolute; left: 20px; 
             background: #222; color: #888; border: 1px solid #444;
-            padding: 8px 12px; border-radius: 8px; cursor: pointer;
-            font-size: 11px; display: flex; flex-direction: column; align-items: center;
+            padding: 10px; border-radius: 8px; cursor: pointer;
+            text-align: center; min-width: 80px;
         }
-        #mode-toggle span { font-weight: bold; color: #00ff00; margin-top: 2px; font-size: 14px; }
-        #note-input { width: 300px; height: 80px; padding: 10px; font-size: 16px; border: none; outline: none; border-radius: 5px; background: #eee; }
-        #color-picker { width: 45px; height: 45px; border: none; cursor: pointer; background: none; }
-        #add-btn { background-color: #fff; color: #000; border: none; padding: 15px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="wall"></div>
+
+    <div id="viewport">
+        <div id="wall"></div>
+    </div>
+
     <div id="dock">
-        <div id="mode-toggle" onclick="toggleMode()">
-            phòng
-            <span id="current-room-text">CÔNG CỘNG</span>
+        <div class="control-group">
+            <div id="mode-toggle" onclick="toggleMode()">
+                Phòng <br> <span id="current-room-text" style="color:#00ff00">CÔNG CỘNG</span>
+            </div>
         </div>
-        <textarea id="note-input" maxlength="500" placeholder="Viết gì đó..."></textarea>
-        <input type="color" id="color-picker" value="#ffffff"> 
-        <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
+
+        <div class="control-group">
+            <label style="font-size: 10px; color: #888;">MÃ CÁ NHÂN:</label>
+            <input type="text" id="user-id-input" placeholder="Nhập mã..." onchange="updateUserId(this.value)">
+        </div>
+
+        <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
+        <input type="color" id="color-picker" value="#ffffff" style="width:40px; height:40px;"> 
+        <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
@@ -65,11 +82,42 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let userId = localStorage.getItem('note_user_id') || ('user_' + Math.random().toString(36).substr(2, 9));
+        // 1. QUẢN LÝ USER ID (ĐỒNG BỘ MÁY)
+        let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
+        document.getElementById('user-id-input').value = userId;
         localStorage.setItem('note_user_id', userId);
 
+        function updateUserId(val) {
+            if(!val.trim()) return;
+            userId = val.trim();
+            localStorage.setItem('note_user_id', userId);
+            if(isPrivate) loadNotes(); // Reload nếu đang ở phòng cá nhân
+            alert("Đã đổi mã! Dùng mã này trên máy khác để thấy note.");
+        }
+
+        // 2. DI CHUYỂN BACKGROUND (INFINITE CANVAS)
+        const viewport = document.getElementById('viewport');
+        const wall = document.getElementById('wall');
+        let isPanning = false;
+        let startX, startY, wallLeft = -2000, wallTop = -2000;
+
+        viewport.onmousedown = (e) => {
+            if(e.target !== viewport && e.target !== wall) return;
+            isPanning = true; viewport.style.cursor = 'grabbing';
+            startX = e.clientX - wallLeft; startY = e.clientY - wallTop;
+        };
+
+        window.onmousemove = (e) => {
+            if (!isPanning) return;
+            wallLeft = e.clientX - startX; wallTop = e.clientY - startY;
+            wall.style.left = wallLeft + 'px'; wall.style.top = wallTop + 'px';
+        };
+
+        window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
+
+        // 3. LOGIC PHÒNG VÀ NOTE
         let isPrivate = false;
-        let currentPath = 'notes'; 
+        let currentPath = 'notes';
 
         function toggleMode() {
             db.ref('notes').off();
@@ -78,15 +126,13 @@
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
             document.getElementById('current-room-text').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             document.getElementById('current-room-text').style.color = isPrivate ? '#ff00ff' : '#00ff00';
-            document.getElementById('wall').innerHTML = "";
-            loadNotes(); 
+            loadNotes();
         }
 
         function loadNotes() {
             const activePath = currentPath;
             db.ref(activePath).on('value', (snapshot) => {
-                const wall = document.getElementById('wall');
-                wall.innerHTML = ""; 
+                wall.innerHTML = "";
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
@@ -94,8 +140,7 @@
                         const note = document.createElement('div');
                         note.className = 'sticky-note';
                         note.innerText = data[id].text;
-                        note.style.left = data[id].x;
-                        note.style.top = data[id].y;
+                        note.style.left = data[id].x; note.style.top = data[id].y;
                         note.style.backgroundColor = data[id].color || '#fff';
                         note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${activePath}/${id}`).remove(); };
                         makeDraggable(note, id, activePath);
@@ -107,36 +152,31 @@
 
         function makeDraggable(el, id, path) {
             let isDragging = false;
-            function startDragging(e) {
-                isDragging = true; el.style.zIndex = 1000;
-                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                let sX = clientX - el.getBoundingClientRect().left;
-                let sY = clientY - el.getBoundingClientRect().top;
-                function onMove(ev) {
-                    if (!isDragging) return;
-                    let pX = ev.type.includes('touch') ? ev.touches[0].pageX : ev.pageX;
-                    let pY = ev.type.includes('touch') ? ev.touches[0].pageY : ev.pageY;
-                    el.style.left = pX - sX + 'px'; el.style.top = pY - sY + 'px';
-                }
-                function onEnd() {
-                    if (isDragging) { db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top }); isDragging = false; }
-                    document.removeEventListener('mousemove', onMove); document.removeEventListener('touchmove', onMove);
-                }
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('touchmove', onMove, {passive: false});
-                document.addEventListener('mouseup', onEnd); document.addEventListener('touchend', onEnd);
-            }
-            el.onmousedown = startDragging; el.ontouchstart = startDragging;
+            el.onmousedown = (e) => {
+                e.stopPropagation(); isDragging = true;
+                let sX = e.clientX - el.offsetLeft; let sY = e.clientY - el.offsetTop;
+                window.onmousemove = (ev) => {
+                    if(!isDragging) return;
+                    el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
+                };
+                window.onmouseup = () => {
+                    if(isDragging) {
+                        db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+                        isDragging = false;
+                    }
+                    window.onmousemove = isPanning ? window.onmousemove : null;
+                };
+            };
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
+            // Dán note vào giữa màn hình hiện tại
+            const x = (Math.abs(wallLeft) + window.innerWidth/2 - 75) + 'px';
+            const y = (Math.abs(wallTop) + window.innerHeight/2 - 50) + 'px';
             db.ref(currentPath).push({
-                text: input.value,
-                x: (Math.random() * (window.innerWidth - 170)) + 'px',
-                y: (Math.random() * (window.innerHeight * 0.4)) + 'px',
+                text: input.value, x, y,
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
