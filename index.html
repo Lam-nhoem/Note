@@ -10,11 +10,11 @@
     <style>
         body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; }
         
-        /* Không gian vô hạn */
+        /* Chỉnh lại Viewport để thấy note cũ ngay lập tức */
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
             position: absolute; width: 5000px; height: 5000px; 
-            top: -2000px; left: -2000px; 
+            top: 0; left: 0; /* Đã đưa về 0 để không bị lạc note cũ */
             background-image: radial-gradient(#333 1px, transparent 1px);
             background-size: 40px 40px; 
         }
@@ -82,7 +82,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. QUẢN LÝ USER ID (ĐỒNG BỘ MÁY)
         let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = userId;
         localStorage.setItem('note_user_id', userId);
@@ -91,15 +90,14 @@
             if(!val.trim()) return;
             userId = val.trim();
             localStorage.setItem('note_user_id', userId);
-            if(isPrivate) loadNotes(); // Reload nếu đang ở phòng cá nhân
-            alert("Đã đổi mã! Dùng mã này trên máy khác để thấy note.");
+            if(isPrivate) loadNotes();
+            alert("Đã đổi mã cá nhân!");
         }
 
-        // 2. DI CHUYỂN BACKGROUND (INFINITE CANVAS)
         const viewport = document.getElementById('viewport');
         const wall = document.getElementById('wall');
         let isPanning = false;
-        let startX, startY, wallLeft = -2000, wallTop = -2000;
+        let startX, startY, wallLeft = 0, wallTop = 0; // Sửa về 0 để đồng bộ note cũ
 
         viewport.onmousedown = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
@@ -115,7 +113,6 @@
 
         window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
 
-        // 3. LOGIC PHÒNG VÀ NOTE
         let isPrivate = false;
         let currentPath = 'notes';
 
@@ -164,7 +161,6 @@
                         db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
                         isDragging = false;
                     }
-                    window.onmousemove = isPanning ? window.onmousemove : null;
                 };
             };
         }
@@ -172,9 +168,9 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            // Dán note vào giữa màn hình hiện tại
-            const x = (Math.abs(wallLeft) + window.innerWidth/2 - 75) + 'px';
-            const y = (Math.abs(wallTop) + window.innerHeight/2 - 50) + 'px';
+            // Dán note vào vị trí người dùng đang nhìn thấy
+            const x = (Math.abs(wallLeft) + 50) + 'px';
+            const y = (Math.abs(wallTop) + 50) + 'px';
             db.ref(currentPath).push({
                 text: input.value, x, y,
                 color: document.getElementById('color-picker').value
