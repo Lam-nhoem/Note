@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Infinite update</title>
     <link rel="icon" href="unnamed-1.jpg">
     <link rel="apple-touch-icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
@@ -10,76 +10,74 @@
     <style>
         body { 
             background-color: #000; margin: 0; padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; color: white;
+            font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn góc trái */
+        /* Bảng hướng dẫn cố định (Static) */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
-            width: 220px; background: rgba(34, 34, 34, 0.9);
+            width: 200px; background: rgba(30, 30, 30, 0.9);
             border: 1px solid #444; border-radius: 10px;
-            padding: 15px; z-index: 2000; font-size: 13px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            padding: 15px; z-index: 2000; font-size: 12px;
+            pointer-events: none; /* Để không vướng khi kéo nền */
         }
-        #guide-box h3 { margin-top: 0; color: #00ff00; font-size: 15px; }
-        #guide-box p { margin: 5px 0; color: #ccc; line-height: 1.4; }
+        #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 14px; }
+        #guide-box p { margin: 4px 0; color: #bbb; }
 
-        #wall { width: 100vw; height: 100vh; position: relative; }
+        /* Không gian vô hạn */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
+        #wall { 
+            position: absolute; width: 10000px; height: 10000px; 
+            top: 0; left: 0; 
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 50px 50px; 
+        }
 
         .sticky-note {
             width: 170px; min-height: 100px; padding: 12px;
             position: absolute; color: #000; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(255,255,255,0.1);
-            font-size: 14px; cursor: move; user-select: none;
-            outline: none; word-wrap: break-word;
+            font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
         }
 
         #dock {
-            position: fixed; bottom: 0; width: 100%;
-            height: 100px; background: #111; border-top: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; height: 110px;
+            background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333;
+            display: flex; justify-content: center; align-items: center; gap: 15px; z-index: 1000;
         }
 
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 8px; border-radius: 5px; width: 100px; text-align: center; }
-        #note-input { width: 300px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 90px; text-align: center; }
+        #note-input { width: 250px; height: 60px; border-radius: 5px; border: none; padding: 8px; }
         #add-btn { background: #fff; color: #000; border: none; padding: 0 20px; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
         
-        #room-btn { 
-            background: #222; color: #888; border: 1px solid #444; 
-            padding: 10px; border-radius: 8px; cursor: pointer; min-width: 100px; text-align: center;
-        }
+        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="guide-box">
-        <h3>📖 CÁCH DÙNG PHÒNG</h3>
-        <p><b>Phòng Cá Nhân:</b> Nhập mã của ông vào ô "Mã ID" rồi bấm đổi phòng. Chỉ ai có mã này mới thấy note của ông.</p>
-        <p><b>Đồng bộ:</b> Dùng chung 1 mã ID trên máy khác để xem note cũ.</p>
-        <p><b>Sửa Note:</b> Bấm trực tiếp vào tờ note để sửa chữ. Bấm ra ngoài để lưu.</p>
-        <p><b>Xóa:</b> Nhấn đúp chuột (Double click) để xóa.</p>
+        <h3>🚀 VŨ TRỤ VÔ HẠN</h3>
+        <p>- <b>Kéo nền:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian.</p>
+        <p>- <b>Phòng riêng:</b> Mã Id sẽ đóng vai trò như là tài khoản của bạn, nhập mã id để vào phòng cá nhân</p>
+        <p>- <b>Sửa note:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
     </div>
 
-    <div id="wall"></div>
+    <div id="viewport">
+        <div id="wall"></div>
+    </div>
 
     <div id="dock">
         <div id="room-btn" onclick="toggleMode()">
-            Phòng <br> <span id="room-status" style="color: #00ff00; font-weight: bold;">CÔNG CỘNG</span>
+            Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span>
         </div>
-
         <div class="input-group">
-            <span style="font-size: 10px; color: #777;">MÃ ID CỦA ÔNG:</span>
-            <input type="text" id="user-id-input" placeholder="Nhập mã..." onchange="updateUserId(this.value)">
+            <span style="font-size: 9px; color: #777;">MÃ ID:</span>
+            <input type="text" id="user-id-input" placeholder="Mã..." onchange="updateUserId(this.value)">
         </div>
-
-        <textarea id="note-input" placeholder="Bạn đang nghĩ gì..."></textarea>
-        
-        <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; border: none; background: none; cursor: pointer;">
-        
-        <button id="add-btn" onclick="sendToCloud()">DÁN LÊN</button>
+        <textarea id="note-input" placeholder="Viết gì đó vào vũ trụ..."></textarea>
+        <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; cursor: pointer;">
+        <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
@@ -102,6 +100,23 @@
         let isPrivate = false;
         let currentPath = 'notes';
 
+        // Xử lý kéo nền (Infinite Canvas)
+        const viewport = document.getElementById('viewport');
+        const wall = document.getElementById('wall');
+        let isPanning = false, startX, startY, wallLeft = 0, wallTop = 0;
+
+        viewport.onmousedown = (e) => {
+            if(e.target !== viewport && e.target !== wall) return;
+            isPanning = true; viewport.style.cursor = 'grabbing';
+            startX = e.clientX - wallLeft; startY = e.clientY - wallTop;
+        };
+        window.onmousemove = (e) => {
+            if (!isPanning) return;
+            wallLeft = e.clientX - startX; wallTop = e.clientY - startY;
+            wall.style.left = wallLeft + 'px'; wall.style.top = wallTop + 'px';
+        };
+        window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
+
         function updateUserId(val) {
             userId = val.trim() || userId;
             localStorage.setItem('note_user_id', userId);
@@ -118,7 +133,6 @@
 
         function loadNotes() {
             db.ref(currentPath).on('value', (snapshot) => {
-                const wall = document.getElementById('wall');
                 wall.innerHTML = "";
                 const data = snapshot.val();
                 if(!data) return;
@@ -128,16 +142,10 @@
                     note.className = 'sticky-note';
                     note.contentEditable = "true";
                     note.innerText = item.text;
-                    note.style.left = item.x;
-                    note.style.top = item.y;
+                    note.style.left = item.x; note.style.top = item.y;
                     note.style.backgroundColor = item.color || '#fff';
-                    
-                    // Sửa trực tiếp
                     note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
-                    
-                    // Xóa
-                    note.ondblclick = () => { if(confirm("Xóa nhé?")) db.ref(`${currentPath}/${id}`).remove(); };
-                    
+                    note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
                     makeDraggable(note, id);
                     wall.appendChild(note);
                 });
@@ -148,35 +156,36 @@
             let isDragging = false;
             el.onmousedown = (e) => {
                 if(document.activeElement === el) return;
-                isDragging = true;
-                let sX = e.clientX - el.offsetLeft;
-                let sY = e.clientY - el.offsetTop;
-                document.onmousemove = (ev) => {
+                e.stopPropagation(); isDragging = true;
+                let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
+                const onMove = (ev) => {
                     if(!isDragging) return;
-                    el.style.left = (ev.clientX - sX) + 'px';
-                    el.style.top = (ev.clientY - sY) + 'px';
+                    el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
                 };
-                document.onmouseup = () => {
+                const onEnd = () => {
                     if(isDragging) {
                         db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
                         isDragging = false;
                     }
+                    window.removeEventListener('mousemove', onMove);
                 };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onEnd);
             };
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
+            // Dán note vào đúng vị trí đang nhìn thấy
+            const x = (Math.abs(wallLeft) + 50) + 'px';
+            const y = (Math.abs(wallTop) + 50) + 'px';
             db.ref(currentPath).push({
-                text: input.value,
-                x: Math.floor(Math.random() * (window.innerWidth - 200)) + 'px',
-                y: Math.floor(Math.random() * (window.innerHeight - 250)) + 'px',
+                text: input.value, x, y,
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
         }
-
         loadNotes();
     </script>
 </body>
