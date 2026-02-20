@@ -13,16 +13,16 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn cố định */
+        /* Bảng hướng dẫn cố định - Đã cập nhật UPDATE.2 của Lâm */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
-            width: 200px; background: rgba(30, 30, 30, 0.9);
+            width: 250px; background: rgba(30, 30, 30, 0.9);
             border: 1px solid #444; border-radius: 10px;
-            padding: 15px; z-index: 2000; font-size: 12px;
-            pointer-events: none; /* Để có thể click xuyên qua dọn note bug nằm dưới */
+            padding: 15px; z-index: 2000; font-size: 13px;
+            pointer-events: none; /* QUAN TRỌNG: Để click xuyên qua xóa note bug ở dưới */
         }
-        #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 14px; }
-        #guide-box p { margin: 4px 0; color: #bbb; }
+        #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 16px; }
+        #guide-box p { margin: 6px 0; color: #bbb; line-height: 1.4; }
 
         /* Không gian vô hạn */
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
@@ -48,10 +48,9 @@
         }
 
         .input-group { display: flex; flex-direction: column; gap: 4px; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 90px; text-align: center; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 100px; text-align: center; }
         #note-input { width: 250px; height: 60px; border-radius: 5px; border: none; padding: 8px; }
         #add-btn { background: #fff; color: #000; border: none; padding: 0 20px; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
-        
         #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
     </style>
 </head>
@@ -83,7 +82,6 @@
     </div>
 
     <script>
-        // Cấu hình Firebase của ông
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -96,15 +94,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Quản lý User ID
         let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = userId;
         localStorage.setItem('note_user_id', userId);
 
-        let isPrivate = false;
-        let currentPath = 'notes';
-
-        // Xử lý kéo nền (Infinite Canvas)
+        let isPrivate = false, currentPath = 'notes';
         const viewport = document.getElementById('viewport');
         const wall = document.getElementById('wall');
         let isPanning = false, startX, startY, wallLeft = 0, wallTop = 0;
@@ -141,20 +135,14 @@
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
-                    const item = data[id];
                     const note = document.createElement('div');
                     note.className = 'sticky-note';
                     note.contentEditable = "true";
-                    note.innerText = item.text;
-                    note.style.left = item.x; note.style.top = item.y;
-                    note.style.backgroundColor = item.color || '#fff';
-                    
-                    // Sửa nội dung
+                    note.innerText = data[id].text;
+                    note.style.left = data[id].x; note.style.top = data[id].y;
+                    note.style.backgroundColor = data[id].color || '#fff';
                     note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
-                    
-                    // Xóa (Double click)
-                    note.ondblclick = () => { if(confirm("Xóa nhé?")) db.ref(`${currentPath}/${id}`).remove(); };
-                    
+                    note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
                     makeDraggable(note, id);
                     wall.appendChild(note);
                 });
@@ -162,20 +150,15 @@
         }
 
         function makeDraggable(el, id) {
-            let isDragging = false;
             el.onmousedown = (e) => {
                 if(document.activeElement === el) return;
-                e.stopPropagation(); isDragging = true;
+                e.stopPropagation();
                 let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
                 const onMove = (ev) => {
-                    if(!isDragging) return;
                     el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
                 };
                 const onEnd = () => {
-                    if(isDragging) {
-                        db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
-                        isDragging = false;
-                    }
+                    db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('mousemove', onMove);
                 };
                 window.addEventListener('mousemove', onMove);
@@ -186,16 +169,14 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            // Tọa độ dán dựa trên vị trí camera hiện tại
-            const x = (Math.abs(wallLeft) + 60) + 'px';
-            const y = (Math.abs(wallTop) + 60) + 'px';
             db.ref(currentPath).push({
-                text: input.value, x, y,
+                text: input.value,
+                x: (Math.abs(wallLeft) + 60) + 'px',
+                y: (Math.abs(wallTop) + 60) + 'px',
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
         }
-
         loadNotes();
     </script>
 </body>
