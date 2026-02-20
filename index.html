@@ -19,7 +19,7 @@
             width: 200px; background: rgba(30, 30, 30, 0.9);
             border: 1px solid #444; border-radius: 10px;
             padding: 15px; z-index: 2000; font-size: 12px;
-            pointer-events: none;
+            pointer-events: none; /* Để có thể click xuyên qua dọn note bug nằm dưới */
         }
         #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 14px; }
         #guide-box p { margin: 4px 0; color: #bbb; }
@@ -38,6 +38,7 @@
             position: absolute; color: #000; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(255,255,255,0.1);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
+            z-index: 100;
         }
 
         #dock {
@@ -57,10 +58,11 @@
 <body>
 
     <div id="guide-box">
-        <h3>🚀 VŨ TRỤ VÔ HẠN</h3>
-        <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian.</p>
-        <p>- <b>private room:</b> Nhập Mã ID rồi đổi phòng để bí mật.</p>
+        <h3>UPDATE.2 🚀</h3>
+        <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
+        <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
+        <p>- <b>delete:</b> Double click để xóa note.</p>
     </div>
 
     <div id="viewport">
@@ -81,6 +83,7 @@
     </div>
 
     <script>
+        // Cấu hình Firebase của ông
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -93,6 +96,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Quản lý User ID
         let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = userId;
         localStorage.setItem('note_user_id', userId);
@@ -100,6 +104,7 @@
         let isPrivate = false;
         let currentPath = 'notes';
 
+        // Xử lý kéo nền (Infinite Canvas)
         const viewport = document.getElementById('viewport');
         const wall = document.getElementById('wall');
         let isPanning = false, startX, startY, wallLeft = 0, wallTop = 0;
@@ -118,4 +123,80 @@
 
         function updateUserId(val) {
             userId = val.trim() || userId;
-            localStorage.setItem('note_
+            localStorage.setItem('note_user_id', userId);
+            if(isPrivate) loadNotes();
+        }
+
+        function toggleMode() {
+            isPrivate = !isPrivate;
+            currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
+            document.getElementById('room-status').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            document.getElementById('room-status').style.color = isPrivate ? '#ff00ff' : '#00ff00';
+            loadNotes();
+        }
+
+        function loadNotes() {
+            db.ref(currentPath).on('value', (snapshot) => {
+                wall.innerHTML = "";
+                const data = snapshot.val();
+                if(!data) return;
+                Object.keys(data).forEach(id => {
+                    const item = data[id];
+                    const note = document.createElement('div');
+                    note.className = 'sticky-note';
+                    note.contentEditable = "true";
+                    note.innerText = item.text;
+                    note.style.left = item.x; note.style.top = item.y;
+                    note.style.backgroundColor = item.color || '#fff';
+                    
+                    // Sửa nội dung
+                    note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
+                    
+                    // Xóa (Double click)
+                    note.ondblclick = () => { if(confirm("Xóa nhé?")) db.ref(`${currentPath}/${id}`).remove(); };
+                    
+                    makeDraggable(note, id);
+                    wall.appendChild(note);
+                });
+            });
+        }
+
+        function makeDraggable(el, id) {
+            let isDragging = false;
+            el.onmousedown = (e) => {
+                if(document.activeElement === el) return;
+                e.stopPropagation(); isDragging = true;
+                let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
+                const onMove = (ev) => {
+                    if(!isDragging) return;
+                    el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
+                };
+                const onEnd = () => {
+                    if(isDragging) {
+                        db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
+                        isDragging = false;
+                    }
+                    window.removeEventListener('mousemove', onMove);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onEnd);
+            };
+        }
+
+        function sendToCloud() {
+            const input = document.getElementById('note-input');
+            if (!input.value.trim()) return;
+            // Tọa độ dán dựa trên vị trí camera hiện tại
+            const x = (Math.abs(wallLeft) + 60) + 'px';
+            const y = (Math.abs(wallTop) + 60) + 'px';
+            db.ref(currentPath).push({
+                text: input.value, x, y,
+                color: document.getElementById('color-picker').value
+            });
+            input.value = "";
+        }
+
+        loadNotes();
+    </script>
+</body>
+</html>
