@@ -2,70 +2,48 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Free Note - made by bad guy</title>
+    <title>Free note - made by bad guy</title>
     <link rel="icon" href="unnamed-1.jpg">
-    <link rel="apple-touch-icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; color: white; }
-        
-        /* Chỉnh lại Viewport để thấy note cũ ngay lập tức */
-        #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
-        #wall { 
-            position: absolute; width: 5000px; height: 5000px; 
-            top: 0; left: 0; /* Đã đưa về 0 để không bị lạc note cũ */
-            background-image: radial-gradient(#333 1px, transparent 1px);
-            background-size: 40px 40px; 
-        }
-
+        body { background-color: #000; margin: 0; overflow: hidden; font-family: sans-serif; color: white; }
+        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; cursor: grab; }
+        #wall { position: absolute; width: 5000px; height: 5000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 40px 40px; }
         .sticky-note {
-            width: 150px; min-height: 100px; padding: 15px;
-            position: absolute; color: #000;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
-            word-wrap: break-word; font-size: 14px; border-radius: 8px;
-            cursor: move; user-select: none;
+            width: 150px; min-height: 100px; padding: 15px; position: absolute; color: #000;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2); word-wrap: break-word; 
+            font-size: 14px; border-radius: 8px; cursor: move; outline: none;
         }
-
         #dock {
-            width: 100vw; height: 120px; background-color: rgba(17, 17, 17, 0.9);
-            border-top: 1px solid #333; display: flex;
-            justify-content: center; align-items: center; gap: 15px;
-            position: fixed; bottom: 0; z-index: 1000;
+            width: 100vw; height: 130px; background: rgba(17,17,17,0.9); border-top: 1px solid #333;
+            display: flex; justify-content: center; align-items: center; gap: 10px; position: fixed; bottom: 0; z-index: 1000;
         }
-
-        .control-group { display: flex; flex-direction: column; gap: 5px; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 5px; border-radius: 4px; width: 100px; text-align: center; }
-        #note-input { width: 250px; height: 60px; padding: 10px; border-radius: 5px; border: none; }
-        #add-btn { background: #fff; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; height: 100%; }
-        
-        #mode-toggle {
-            background: #222; color: #888; border: 1px solid #444;
-            padding: 10px; border-radius: 8px; cursor: pointer;
-            text-align: center; min-width: 80px;
+        /* NÚT THẦN THÁNH ĐÂY */
+        #rescue-btn {
+            background: #ff4757; color: white; border: none; padding: 10px; 
+            border-radius: 5px; font-weight: bold; cursor: pointer; position: fixed; top: 20px; right: 20px; z-index: 2000;
         }
+        #note-input { width: 200px; height: 60px; border-radius: 5px; border: none; padding: 5px; }
+        #add-btn { background: #fff; border: none; padding: 15px; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <button id="rescue-btn" onclick="rescueNotes()">🆘 TRIỆU HỒI NOTE (NẾU BỊ MẤT)</button>
 
     <div id="viewport">
         <div id="wall"></div>
     </div>
 
     <div id="dock">
-        <div class="control-group">
-            <div id="mode-toggle" onclick="toggleMode()">
-                Phòng <br> <span id="current-room-text" style="color:#00ff00">CÔNG CỘNG</span>
-            </div>
+        <div style="text-align:center">
+            <button onclick="toggleMode()" style="background:#222; color:#00ff00; border:1px solid #444; padding:10px; border-radius:5px; cursor:pointer;">
+                PHÒNG: <span id="room-text">CÔNG CỘNG</span>
+            </button>
         </div>
-
-        <div class="control-group">
-            <label style="font-size: 10px; color: #888;">MÃ CÁ NHÂN:</label>
-            <input type="text" id="user-id-input" placeholder="Nhập mã..." onchange="updateUserId(this.value)">
-        </div>
-
+        <input type="text" id="user-id-input" placeholder="Mã ID" style="width:80px; background:#222; color:#00ff00; border:1px solid #444; padding:5px;" onchange="updateUserId(this.value)">
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
-        <input type="color" id="color-picker" value="#ffffff" style="width:40px; height:40px;"> 
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
@@ -84,83 +62,71 @@
 
         let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = userId;
-        localStorage.setItem('note_user_id', userId);
+        
+        let wallLeft = 0, wallTop = 0;
+        const wall = document.getElementById('wall');
 
-        function updateUserId(val) {
-            if(!val.trim()) return;
-            userId = val.trim();
-            localStorage.setItem('note_user_id', userId);
-            if(isPrivate) loadNotes();
-            alert("Đã đổi mã cá nhân!");
+        // HÀM TRIỆU HỒI: ÉP TẤT CẢ NOTE VỀ VỊ TRÍ (50, 50) CỦA MÀN HÌNH HIỆN TẠI
+        function rescueNotes() {
+            if(!confirm("Hệ thống sẽ kéo tất cả note về vị trí bạn đang nhìn. Bạn đồng ý chứ?")) return;
+            const activePath = currentPath;
+            db.ref(activePath).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if(!data) { alert("Không tìm thấy dữ liệu nào!"); return; }
+                
+                Object.keys(data).forEach((id, index) => {
+                    // Xếp chồng nhẹ lên nhau ở góc trái màn hình hiện tại
+                    db.ref(`${activePath}/${id}`).update({
+                        x: (Math.abs(wallLeft) + 50 + (index * 10)) + 'px',
+                        y: (Math.abs(wallTop) + 50 + (index * 10)) + 'px'
+                    });
+                });
+                alert("Đã triệu hồi xong! Kiểm tra góc màn hình nhé.");
+            });
         }
 
-        const viewport = document.getElementById('viewport');
-        const wall = document.getElementById('wall');
-        let isPanning = false;
-        let startX, startY, wallLeft = 0, wallTop = 0; // Sửa về 0 để đồng bộ note cũ
+        // ... (Giữ nguyên các hàm di chuyển nền, dán note và load note như bản trước) ...
+        let isPrivate = false; let currentPath = 'notes';
 
-        viewport.onmousedown = (e) => {
-            if(e.target !== viewport && e.target !== wall) return;
-            isPanning = true; viewport.style.cursor = 'grabbing';
-            startX = e.clientX - wallLeft; startY = e.clientY - wallTop;
-        };
-
-        window.onmousemove = (e) => {
-            if (!isPanning) return;
-            wallLeft = e.clientX - startX; wallTop = e.clientY - startY;
-            wall.style.left = wallLeft + 'px'; wall.style.top = wallTop + 'px';
-        };
-
-        window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
-
-        let isPrivate = false;
-        let currentPath = 'notes';
-
+        function updateUserId(val) { userId = val; localStorage.setItem('note_user_id', userId); loadNotes(); }
+        
         function toggleMode() {
-            db.ref('notes').off();
-            db.ref(`notes/private/${userId}`).off();
             isPrivate = !isPrivate;
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
-            document.getElementById('current-room-text').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            document.getElementById('current-room-text').style.color = isPrivate ? '#ff00ff' : '#00ff00';
+            document.getElementById('room-text').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             loadNotes();
         }
 
         function loadNotes() {
-            const activePath = currentPath;
-            db.ref(activePath).on('value', (snapshot) => {
+            db.ref(currentPath).on('value', (snapshot) => {
                 wall.innerHTML = "";
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
-                    if (data[id] && data[id].text) {
-                        const note = document.createElement('div');
-                        note.className = 'sticky-note';
-                        note.innerText = data[id].text;
-                        note.style.left = data[id].x; note.style.top = data[id].y;
-                        note.style.backgroundColor = data[id].color || '#fff';
-                        note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${activePath}/${id}`).remove(); };
-                        makeDraggable(note, id, activePath);
-                        wall.appendChild(note);
-                    }
+                    const note = document.createElement('div');
+                    note.className = 'sticky-note';
+                    note.contentEditable = "true";
+                    note.innerText = data[id].text;
+                    note.style.left = data[id].x; note.style.top = data[id].y;
+                    note.style.backgroundColor = data[id].color || '#fff';
+                    note.onblur = () => db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
+                    note.ondblclick = () => { if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
+                    makeDraggable(note, id);
+                    wall.appendChild(note);
                 });
             });
         }
 
-        function makeDraggable(el, id, path) {
-            let isDragging = false;
+        function makeDraggable(el, id) {
             el.onmousedown = (e) => {
-                e.stopPropagation(); isDragging = true;
-                let sX = e.clientX - el.offsetLeft; let sY = e.clientY - el.offsetTop;
+                if(document.activeElement === el) return;
+                let sX = e.clientX - el.offsetLeft, sY = e.clientY - el.offsetTop;
                 window.onmousemove = (ev) => {
-                    if(!isDragging) return;
                     el.style.left = (ev.clientX - sX) + 'px'; el.style.top = (ev.clientY - sY) + 'px';
                 };
                 window.onmouseup = () => {
-                    if(isDragging) {
-                        db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
-                        isDragging = false;
-                    }
+                    db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
+                    window.onmousemove = null;
                 };
             };
         }
@@ -168,16 +134,28 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            // Dán note vào vị trí người dùng đang nhìn thấy
-            const x = (Math.abs(wallLeft) + 50) + 'px';
-            const y = (Math.abs(wallTop) + 50) + 'px';
             db.ref(currentPath).push({
-                text: input.value, x, y,
-                color: document.getElementById('color-picker').value
+                text: input.value,
+                x: (Math.abs(wallLeft) + 100) + 'px',
+                y: (Math.abs(wallTop) + 100) + 'px',
+                color: '#fff'
             });
             input.value = "";
         }
+
+        // Di chuyển nền
+        document.getElementById('viewport').onmousedown = (e) => {
+            if(e.target.id !== 'viewport' && e.target.id !== 'wall') return;
+            let sX = e.clientX - wallLeft, sY = e.clientY - wallTop;
+            window.onmousemove = (ev) => {
+                wallLeft = ev.clientX - sX; wallTop = ev.clientY - sY;
+                wall.style.left = wallLeft + 'px'; wall.style.top = wallTop + 'px';
+            };
+            window.onmouseup = () => window.onmousemove = null;
+        };
+
         loadNotes();
     </script>
 </body>
 </html>
+
