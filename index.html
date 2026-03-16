@@ -56,7 +56,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
-            user-select: none; /* Ngăn bôi đen văn bản để tập trung vào kéo và xóa */
+            user-select: none;
+            transition: transform 0.1s ease;
         }
 
         #dock {
@@ -75,12 +76,12 @@
 <body>
 
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.17 👽 <span id="guide-arrow">▲</span></h3>
+        <h3 onclick="toggleGuide()">UPDATE.18 👾 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
-            <p>• <b>move:</b> nhấn vào vùng đen để di chuyển</p>
-            <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
+            <p>• <b>move:</b> nhấn giữ để di chuyển</p>
+            <p>• <b>zoom:</b> dùng 2 ngón tay ngoài vùng note</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
-            <p>• <b>delete:</b> nhấn 2 lần để xóa vĩnh viễn</p>
+            <p>• <b>delete:</b> nhấn giữ 1 lúc để xóa</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -215,25 +216,38 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            // Logic Xóa bằng Double Tap (chuẩn nhất cho điện thoại)
-            let lastTap = 0;
-            note.addEventListener('touchstart', (e) => {
-                const now = new Date().getTime();
-                const timesince = now - lastTap;
-                if (timesince < 300 && timesince > 0) {
-                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                        fullRef.remove();
-                    }
-                }
-                lastTap = now;
-            });
+            // Logic Xóa bằng Nhấn giữ (Long Press) - Cực kỳ ổn định trên Mobile
+            let pressTimer;
+            let isMoved = false;
 
-            // Dự phòng cho máy tính
-            note.addEventListener('dblclick', () => {
-                if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                    fullRef.remove();
-                }
-            });
+            const startPress = (e) => {
+                isMoved = false;
+                // Nếu chạm 2 ngón (để zoom) thì bỏ qua lệnh xóa
+                if (e.touches && e.touches.length > 1) return;
+                
+                pressTimer = setTimeout(() => {
+                    if (!isMoved) { // Chỉ xóa nếu ngón tay không bị di chuyển (tránh nhầm với kéo note)
+                        if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                            fullRef.remove();
+                        }
+                    }
+                }, 600); // Đè 0.6 giây để xóa
+            };
+
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+            };
+
+            note.addEventListener('touchstart', startPress, {passive: true});
+            note.addEventListener('touchend', cancelPress, {passive: true});
+            note.addEventListener('touchmove', () => {
+                isMoved = true; // Nếu di chuyển ngón tay thì hủy lệnh xóa
+                cancelPress();
+            }, {passive: true});
+            
+            // Cho máy tính
+            note.addEventListener('mousedown', startPress);
+            note.addEventListener('mouseup', cancelPress);
 
             makeDraggable(note, fullRef);
             wall.appendChild(note);
