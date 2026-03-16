@@ -56,7 +56,26 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
-            user-select: none; /* Ngăn chọn văn bản khi nhấn giữ */
+            user-select: none;
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; /* Hiệu ứng mượt mà khi nhấn */
+        }
+
+        /* Hiệu ứng lún xuống khi đang nhấn giữ */
+        .sticky-note.pressing {
+            transform: scale(0.9) !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Hiệu ứng rung rinh khi chuẩn bị xóa (như iPhone) */
+        @keyframes jiggle {
+            0% { transform: scale(1) rotate(-1deg); }
+            50% { transform: scale(1) rotate(1deg); }
+            100% { transform: scale(1) rotate(-1deg); }
+        }
+
+        .sticky-note.jiggling {
+            animation: jiggle 0.2s infinite;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6) !important;
         }
 
         #dock {
@@ -81,7 +100,7 @@
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
             <p>• <b>edit:</b> nhấn trực tiếp vào tờ note để sửa</p>
-            <p>• <b>delete:</b> nhấn giữ 1 giây để xóa</p>
+            <p>• <b>delete:</b> nhấn giữ 1 giây để xóa (hiệu ứng iPhone)</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -217,18 +236,32 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            // Logic Xóa vĩnh viễn bằng cách Nhấn giữ (Long Press)
+            // Logic Xóa vĩnh viễn bằng cách Nhấn giữ (Long Press) với hiệu ứng
             let pressTimer;
 
             const startPress = (e) => {
+                cancelPress(); // Xóa timer cũ nếu có
+                note.classList.add('pressing'); // Thêm hiệu ứng lún xuống ngay lập tức
+                
                 pressTimer = window.setTimeout(() => {
-                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                        fullRef.remove();
-                    }
-                }, 800); // Nhấn giữ 0.8 giây để xóa
+                    note.classList.remove('pressing'); // Bỏ hiệu ứng lún
+                    note.classList.add('jiggling'); // Thêm hiệu ứng rung rinh (nổi lên)
+
+                    // Sử dụng setTimeout nhẹ để bảng thông báo hiện sau hiệu ứng rung
+                    window.setTimeout(() => {
+                        if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                            fullRef.remove();
+                        } else {
+                            note.classList.remove('jiggling'); // Ngừng rung nếu hủy xóa
+                        }
+                    }, 10);
+                }, 1000); // Nhấn giữ đủ 1 giây để kích hoạt xóa
             };
 
-            const cancelPress = () => { clearTimeout(pressTimer); };
+            const cancelPress = () => { 
+                clearTimeout(pressTimer); 
+                note.classList.remove('pressing'); // Bỏ hiệu ứng lún nếu buông tay sớm
+            };
 
             note.addEventListener('mousedown', startPress);
             note.addEventListener('touchstart', startPress, {passive: true});
@@ -250,7 +283,8 @@
         function makeDraggable(el, ref) {
             let oX, oY;
             const start = (e) => {
-                if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
+                // Đảm bảo không kéo khi đang gõ phím hoặc đang rung rinh (chuẩn bị xóa)
+                if(document.activeElement === el || (e.touches && e.touches.length > 1) || el.classList.contains('jiggling')) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
                 const cY = e.touches ? e.touches[0].clientY : e.clientY;
                 oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
