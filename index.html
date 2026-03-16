@@ -56,15 +56,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
-            transition: opacity 0.3s ease, transform 0.3s ease-out;
-            box-sizing: border-box;
-        }
-
-        /* Hiệu ứng bay đi khi bị xóa */
-        .sticky-note.deleting {
-            opacity: 0 !important;
-            transform: translateY(-200px) scale(0.5) !important;
-            pointer-events: none;
+            user-select: none; /* Ngăn bôi đen văn bản để tập trung vào kéo và xóa */
         }
 
         #dock {
@@ -83,13 +75,12 @@
 <body>
 
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.8 👾 <span id="guide-arrow">▲</span></h3>
+        <h3 onclick="toggleGuide()">UPDATE.17 👽 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
             <p>• <b>move:</b> nhấn vào vùng đen để di chuyển</p>
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
-            <p>• <b>edit:</b> nhấn vào note để sửa nội dung</p>
-            <p>• <b>delete:</b> vuốt mạnh lên trên để xóa</p>
+            <p>• <b>delete:</b> nhấn 2 lần để xóa vĩnh viễn</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -217,7 +208,6 @@
         function renderNote(id, item, currentPath) {
             const note = document.createElement('div');
             note.className = 'sticky-note';
-            note.contentEditable = "true";
             note.innerText = item.text;
             note.style.left = item.x;
             note.style.top = item.y;
@@ -225,48 +215,25 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            // Logic Vuốt lên để xóa (Swipe Up to Delete)
-            let startY = 0;
-            let currentY = 0;
-            let isSwiping = false;
-
+            // Logic Xóa bằng Double Tap (chuẩn nhất cho điện thoại)
+            let lastTap = 0;
             note.addEventListener('touchstart', (e) => {
-                startY = e.touches[0].clientY;
-                isSwiping = true;
-                note.style.transition = 'none';
-            }, {passive: true});
-
-            note.addEventListener('touchmove', (e) => {
-                if (!isSwiping || document.activeElement === note) return;
-                let diff = e.touches[0].clientY - startY;
-                if (diff < 0) { // Chỉ cho vuốt lên
-                    currentY = diff;
-                    note.style.transform = `translateY(${currentY}px)`;
-                    note.style.opacity = Math.max(1 + diff / 200, 0.5);
-                }
-            }, {passive: true});
-
-            note.addEventListener('touchend', () => {
-                if (!isSwiping) return;
-                isSwiping = false;
-                if (currentY < -150) { // Nếu vuốt lên đủ mạnh
-                    note.classList.add('deleting');
-                    setTimeout(() => {
+                const now = new Date().getTime();
+                const timesince = now - lastTap;
+                if (timesince < 300 && timesince > 0) {
+                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
                         fullRef.remove();
-                    }, 300);
-                } else {
-                    note.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                    note.style.transform = 'translateY(0px)';
-                    note.style.opacity = '1';
+                    }
                 }
-                currentY = 0;
-            }, {passive: true});
+                lastTap = now;
+            });
 
-            note.onblur = () => {
-                if(note.innerText.trim() !== "") {
-                    fullRef.update({ text: note.innerText });
+            // Dự phòng cho máy tính
+            note.addEventListener('dblclick', () => {
+                if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                    fullRef.remove();
                 }
-            };
+            });
 
             makeDraggable(note, fullRef);
             wall.appendChild(note);
@@ -275,8 +242,7 @@
         function makeDraggable(el, ref) {
             let oX, oY;
             const start = (e) => {
-                // Chỉ kéo khi không đang gõ phím
-                if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
+                if(e.touches && e.touches.length > 1) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
                 const cY = e.touches ? e.touches[0].clientY : e.clientY;
                 oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
