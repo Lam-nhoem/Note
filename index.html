@@ -12,7 +12,7 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn - Giữ đúng nội dung của ông */
+        /* Bảng hướng dẫn */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 250px; background: rgba(30, 30, 30, 0.9);
@@ -57,10 +57,10 @@
     <div id="guide-box">
         <h3>UPDATE.3 👾</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
-        <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
+        <p>- <b>private room:</b> Nhập Mã ID để vào phòng cá nhân.</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
         <p>- <b>delete:</b> Double click để xóa note.</p>
-        <p>- <b>Hello, Lâm dayy, web của mình mới có update mới á mí bạn, nên là bây giờ xoá note thoải mái và trơn tru hơn nhiều ròi á ! Có gì góp ý thì dán note lên nha, nào rảnh mình đọc ròi mình thêm ý tưởng của mí bạn vào nè !</b>
+        <p>- <b>Hello, Lâm dayy! Chúc mừng web được chọn đi thi nha! 🚀</b></p>
     </div>
 
     <div id="viewport">
@@ -100,7 +100,6 @@
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
 
-        // Di chuyển nền
         viewport.onmousedown = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true; viewport.style.cursor = 'grabbing';
@@ -115,8 +114,17 @@
 
         let isPrivate = false, currentPath = 'notes';
 
-        function updateUserId(val) { userId = val.trim() || userId; localStorage.setItem('note_user_id', userId); if(isPrivate) loadNotes(); }
+        // CHỖ SỬA 1: Cập nhật ID và bẻ lái đường dẫn ngay lập tức
+        function updateUserId(val) { 
+            userId = val.trim() || userId; 
+            localStorage.setItem('note_user_id', userId); 
+            if(isPrivate) {
+                currentPath = `notes/private/${userId}`;
+                loadNotes(); 
+            }
+        }
         
+        // CHỖ SỬA 2: Đảm bảo chuyển chế độ là đúng đường dẫn
         function toggleMode() {
             isPrivate = !isPrivate;
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
@@ -126,9 +134,9 @@
         }
 
         function loadNotes() {
-            db.ref(currentPath).off(); // Ngắt listener cũ
+            db.ref(currentPath).off(); 
             db.ref(currentPath).on('value', (snapshot) => {
-                wall.innerHTML = ""; // Xóa sạch để tránh respawn ở góc trái
+                wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
@@ -146,16 +154,13 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            
             note.onmousedown = (e) => e.stopPropagation();
 
-            // Sửa nội dung
             note.onblur = () => {
                 if(note.innerText.trim() === "") return;
                 db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
             };
 
-            // Xóa note
             note.ondblclick = (e) => {
                 e.stopPropagation();
                 if(confirm("Xóa nhé?")) {
@@ -203,4 +208,3 @@
     </script>
 </body>
 </html>
-
