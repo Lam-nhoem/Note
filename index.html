@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Free Note - STABLE VERSION</title>
+    <title>Free Note - Update 31</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
@@ -16,9 +16,10 @@
             background: rgba(25, 25, 25, 0.95); border: 1px solid #444; border-radius: 12px;
             padding: 12px; z-index: 2000; font-size: 11px;
         }
-        #guide-box h3 { margin: 0; color: #00ff00; font-size: 14px; cursor: pointer; }
+        #guide-box h3 { margin: 0; font-size: 14px; cursor: pointer; padding-bottom: 5px; }
+        #guide-box a { color: #00ff00; text-decoration: none; }
         
-        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; cursor: grab; }
         #wall { 
             position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; 
             background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; 
@@ -27,7 +28,7 @@
 
         .sticky-note {
             width: 170px; min-height: 100px; padding: 12px; position: absolute; 
-            color: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            color: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             font-size: 14px; cursor: move; word-wrap: break-word; z-index: 100;
             text-align: left; white-space: pre-wrap;
         }
@@ -45,7 +46,7 @@
 <body>
 
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.30 🧶</h3>
+        <h3><a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank">UPDATE.31 🚀 (FB ADMIN)</a></h3>
         <div id="guide-content">
             <p>• move: kéo note/nền</p>
             <p>• zoom: 2 ngón tay</p>
@@ -58,17 +59,12 @@
     <div id="dock">
         <div id="room-btn" onclick="toggleMode()" style="cursor:pointer; text-align:center; font-size:11px;">Phòng <br> <span id="room-status" style="color: #00ff00; font-weight: bold;">CÔNG CỘNG</span></div>
         <input type="text" id="user-id-input" placeholder="Mã...">
-        <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
+        <textarea id="note-input" placeholder="Nội dung..."></textarea>
         <input type="color" id="color-picker" value="#ffffff">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
-        function toggleGuide() {
-            const c = document.getElementById('guide-content');
-            c.style.display = (c.style.display === 'none') ? 'block' : 'none';
-        }
-
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -98,7 +94,7 @@
                 startX = e.touches[0].clientX - wallLeft;
                 startY = e.touches[0].clientY - wallTop;
             }
-        });
+        }, {passive: false});
 
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
@@ -130,7 +126,6 @@
             const status = document.getElementById('room-status').innerText;
             const id = document.getElementById('user-id-input').value.trim() || 'default';
             const path = (status === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
-            
             db.ref(path).off();
             db.ref(path).on('value', (snap) => {
                 wall.innerHTML = "";
@@ -144,24 +139,20 @@
             });
         }
 
-        function renderNote(noteId, item, currentPath) {
+        function renderNote(noteId, item, path) {
             const n = document.createElement('div');
             n.className = 'sticky-note';
             n.innerText = item.text || "";
             n.style.left = item.x || '100px';
             n.style.top = item.y || '100px';
             n.style.backgroundColor = item.color || '#fff';
-            
             let lastTap = 0;
             n.addEventListener('touchend', (e) => {
                 const now = Date.now();
-                if (now - lastTap < 300) {
-                    if (confirm("Xóa note này?")) db.ref(`${currentPath}/${noteId}`).remove();
-                }
+                if (now - lastTap < 300) { if (confirm("Xóa note này?")) db.ref(`${path}/${noteId}`).remove(); }
                 lastTap = now;
             });
-
-            makeDraggable(n, currentPath, noteId);
+            makeDraggable(n, path, noteId);
             wall.appendChild(n);
         }
 
@@ -172,19 +163,16 @@
                 e.stopPropagation();
                 oX = e.touches[0].clientX - el.offsetLeft;
                 oY = e.touches[0].clientY - el.offsetTop;
-                
                 const move = (ev) => {
                     ev.preventDefault();
                     el.style.left = (ev.touches[0].clientX - oX) + 'px';
                     el.style.top = (ev.touches[0].clientY - oY) + 'px';
                 };
-                
                 const stop = () => {
                     db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('touchmove', move);
                     window.removeEventListener('touchend', stop);
                 };
-                
                 window.addEventListener('touchmove', move, {passive: false});
                 window.addEventListener('touchend', stop);
             });
@@ -196,7 +184,6 @@
             const status = document.getElementById('room-status').innerText;
             const id = document.getElementById('user-id-input').value.trim() || 'default';
             const targetPath = (status === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
-            
             db.ref(targetPath).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + 200) / scale + 'px',
