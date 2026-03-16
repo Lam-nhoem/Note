@@ -16,7 +16,7 @@
 
         #guide-box {
             position: fixed; top: 10px; left: 10px;
-            width: 220px; background: rgba(25, 25, 25, 0.95);
+            width: 230px; background: rgba(25, 25, 25, 0.95);
             border: 1px solid #444; border-radius: 12px;
             padding: 12px; z-index: 2000; font-size: 11px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -27,7 +27,7 @@
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
         #guide-content { display: block; margin-top: 8px; }
-        #guide-box p { margin: 5px 0; color: #ccc; line-height: 1.4; }
+        #guide-box p { margin: 4px 0; color: #ccc; line-height: 1.4; }
         
         .admin-link {
             color: #00ccff; text-decoration: none; font-weight: bold;
@@ -78,6 +78,8 @@
         <div id="guide-content">
             <p>• <b>move:</b> nhấn vào vùng đen để di chuyển</p>
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
+            <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
+            <p>• <b>edit:</b> nhấn trực tiếp vào tờ note để sửa</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -210,44 +212,43 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            note.setAttribute('data-id', id);
-            note.setAttribute('data-path', currentPath);
+            
+            const fullRef = db.ref(`${currentPath}/${id}`);
 
             note.addEventListener('touchstart', (e) => e.stopPropagation());
             note.addEventListener('mousedown', (e) => e.stopPropagation());
 
-            const deleteMe = () => {
-                if(confirm("Xóa vĩnh viễn nhé?")) {
-                    const noteId = note.getAttribute('data-id');
-                    const notePath = note.getAttribute('data-path');
-                    db.ref(`${notePath}/${noteId}`).remove();
-                }
-            };
-
             let lastTap = 0;
-            note.addEventListener('touchend', (e) => {
+            const handleDelete = (e) => {
                 const now = new Date().getTime();
-                if (now - lastTap < 300 && now - lastTap > 0) { 
-                    deleteMe(); 
-                    e.preventDefault(); 
+                const timesince = now - lastTap;
+                if (timesince < 300 && timesince > 0) {
+                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                        fullRef.remove();
+                    }
+                    e.preventDefault();
                 }
                 lastTap = now;
+            };
+
+            note.addEventListener('touchend', handleDelete);
+            note.addEventListener('dblclick', (e) => {
+                if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                    fullRef.remove();
+                }
             });
-            note.ondblclick = deleteMe;
 
             note.onblur = () => {
-                const noteId = note.getAttribute('data-id');
-                const notePath = note.getAttribute('data-path');
                 if(note.innerText.trim() !== "") {
-                    db.ref(`${notePath}/${noteId}`).update({ text: note.innerText });
+                    fullRef.update({ text: note.innerText });
                 }
             };
 
-            makeDraggable(note);
+            makeDraggable(note, fullRef);
             wall.appendChild(note);
         }
 
-        function makeDraggable(el) {
+        function makeDraggable(el, ref) {
             let oX, oY;
             const start = (e) => {
                 if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
@@ -261,9 +262,7 @@
                     el.style.top = (mY - oY) + 'px';
                 };
                 const stop = () => {
-                    const noteId = el.getAttribute('data-id');
-                    const notePath = el.getAttribute('data-path');
-                    db.ref(`${notePath}/${noteId}`).update({ x: el.style.left, y: el.style.top });
+                    ref.update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
                     window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
                 };
