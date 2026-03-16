@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Update 29</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
         * { font-family: sans-serif; box-sizing: border-box; }
         body { background-color: #000; margin: 0; padding: 0; overflow: hidden; color: white; touch-action: none; }
-
         #guide-box {
             position: fixed; top: 10px; left: 10px; width: 230px; 
             background: rgba(25, 25, 25, 0.95); border: 1px solid #444; border-radius: 12px;
             padding: 12px; z-index: 2000; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         #guide-box h3 { margin: 0; color: #00ff00; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; }
-        #guide-content { display: block; margin-top: 8px; }
         .admin-link { color: #00ccff; text-decoration: none; font-weight: bold; background: linear-gradient(90deg, #00ff00, #00ccff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .dev-tag { border-top: 1px solid #333; margin-top: 10px; padding-top: 8px; font-size: 10px; color: #888; }
-
-        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; background: #000; }
+        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
         #wall { 
             position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; 
             background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; 
             transform-origin: 0 0;
         }
-
         .sticky-note {
             width: 170px; min-height: 100px; padding: 12px; position: absolute; 
             color: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; word-wrap: break-word; z-index: 100;
-            text-align: left; white-space: pre-wrap; display: block;
+            text-align: left; white-space: pre-wrap;
         }
-
         #dock {
             position: fixed; bottom: 0; width: 100%; height: 110px;
             background: rgba(10, 10, 10, 0.98); border-top: 1px solid #333;
@@ -47,33 +42,29 @@
     </style>
 </head>
 <body>
-
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.28 😭 <span id="guide-arrow">▲</span></h3>
+        <h3 onclick="toggleGuide()">UPDATE.29 🚀 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
             <p>• <b>move:</b> kéo note hoặc nền để di chuyển</p>
-            <p>• <b>zoom:</b> 2 ngón tay thu phóng</p>
-            <p>• <b>delete:</b> gõ 2 lần nhanh vào note để xóa</p>
+            <p>• <b>zoom:</b> 2 ngón tay để thu phóng</p>
+            <p>• <b>delete:</b> gõ 2 lần nhanh để xóa</p>
             <div class="dev-tag">
                 developed by Tung Lam <br>
                 contact: <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">admin</a>
             </div>
         </div>
     </div>
-
     <div id="viewport"><div id="wall"></div></div>
-
     <div id="dock">
         <div id="room-btn" onclick="toggleMode()" style="cursor:pointer; text-align:center; font-size:11px;">Phòng <br> <span id="room-status" style="color: #00ff00; font-weight: bold;">CÔNG CỘNG</span></div>
         <div class="input-group">
             <span style="font-size: 9px; color: #777;">MÃ ID:</span>
             <input type="text" id="user-id-input" placeholder="Mã...">
         </div>
-        <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
+        <textarea id="note-input" placeholder="Update 29 có gì mới?"></textarea>
         <input type="color" id="color-picker" value="#ffffff">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
-
     <script>
         function toggleGuide() {
             const c = document.getElementById('guide-content');
@@ -81,7 +72,6 @@
             c.style.display = (c.style.display === 'none') ? 'block' : 'none';
             a.innerText = (c.style.display === 'none') ? '▼' : '▲';
         }
-
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -93,16 +83,11 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         let wallLeft = 0, wallTop = 0, scale = 1;
         let isPanning = false, startX, startY, initialDist = null;
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
-
-        function updateWall() { 
-            wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; 
-        }
-
+        function updateWall() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
         viewport.addEventListener('touchstart', (e) => {
             if (e.target !== viewport && e.target !== wall) return;
             if (e.touches.length === 2) {
@@ -114,7 +99,6 @@
                 startY = e.touches[0].clientY - wallTop;
             }
         }, {passive: false});
-
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault();
@@ -131,21 +115,17 @@
                 updateWall();
             }
         }, {passive: false});
-
         window.addEventListener('touchend', () => { isPanning = false; initialDist = null; });
-
         function toggleMode() {
             const s = document.getElementById('room-status');
             s.innerText = (s.innerText === 'CÔNG CỘNG') ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             s.style.color = (s.innerText === 'CÁ NHÂN') ? '#ff00ff' : '#00ff00';
             loadNotes();
         }
-
         function loadNotes() {
             const status = document.getElementById('room-status').innerText;
             const id = document.getElementById('user-id-input').value.trim() || 'default';
             const path = (status === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
-            
             db.ref(path).off();
             db.ref(path).on('value', (snap) => {
                 wall.innerHTML = "";
@@ -158,7 +138,6 @@
                 }
             });
         }
-
         function renderNote(noteId, item, currentPath) {
             const n = document.createElement('div');
             n.className = 'sticky-note';
@@ -166,7 +145,6 @@
             n.style.left = item.x || '100px';
             n.style.top = item.y || '100px';
             n.style.backgroundColor = item.color || '#fff';
-            
             let lastTap = 0;
             n.addEventListener('touchend', (e) => {
                 const now = Date.now();
@@ -177,11 +155,9 @@
                 }
                 lastTap = now;
             });
-
             makeDraggable(n, db.ref(`${currentPath}/${noteId}`));
             wall.appendChild(n);
         }
-
         function makeDraggable(el, ref) {
             let oX, oY;
             el.addEventListener('touchstart', (e) => {
@@ -189,31 +165,26 @@
                 e.stopPropagation();
                 oX = e.touches[0].clientX - el.offsetLeft;
                 oY = e.touches[0].clientY - el.offsetTop;
-                
                 const move = (ev) => {
                     ev.preventDefault();
                     el.style.left = (ev.touches[0].clientX - oX) + 'px';
                     el.style.top = (ev.touches[0].clientY - oY) + 'px';
                 };
-                
                 const stop = () => {
                     ref.update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('touchmove', move);
                     window.removeEventListener('touchend', stop);
                 };
-                
                 window.addEventListener('touchmove', move, {passive: false});
                 window.addEventListener('touchend', stop);
             });
         }
-
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
             const status = document.getElementById('room-status').innerText;
             const id = document.getElementById('user-id-input').value.trim() || 'default';
             const path = (status === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
-            
             db.ref(path).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + window.innerWidth/2 - 85) / scale + 'px',
