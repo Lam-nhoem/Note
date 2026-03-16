@@ -12,6 +12,7 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
+        /* Giữ nguyên 100% nội dung và style của Lâm */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 250px; background: rgba(30, 30, 30, 0.9);
@@ -53,7 +54,7 @@
 <body>
 
     <div id="guide-box">
-        <h3>UPDATE.5 🧶</h3>
+        <h3>UPDATE.6 😾</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
         <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
@@ -71,7 +72,7 @@
         </div>
         <div class="input-group">
             <span style="font-size: 9px; color: #777;">MÃ ID:</span>
-            <input type="text" id="user-id-input" placeholder="Mã..." oninput="updateUserId(this.value)">
+            <input type="text" id="user-id-input" placeholder="Mã...">
         </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; cursor: pointer; border:none;">
@@ -91,8 +92,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let userId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
-        document.getElementById('user-id-input').value = userId;
+        // Khởi tạo ID ban đầu
+        let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
+        document.getElementById('user-id-input').value = currentUserId;
 
         let wallLeft = 0, wallTop = 0, isPanning = false, startX, startY;
         const wall = document.getElementById('wall');
@@ -110,39 +112,38 @@
         };
         window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
 
-        let isPrivate = false;
-        
-        // Hàm lấy đường dẫn chuẩn xác nhất tại mọi thời điểm
-        function getPath() {
-            return isPrivate ? `notes/private/${userId}` : 'notes';
-        }
-
-        function updateUserId(val) { 
-            userId = val.trim() || userId; 
-            localStorage.setItem('note_user_id', userId); 
-            if(isPrivate) loadNotes(); 
-        }
-        
         function toggleMode() {
-            isPrivate = !isPrivate;
-            document.getElementById('room-status').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            document.getElementById('room-status').style.color = isPrivate ? '#ff00ff' : '#00ff00';
+            const status = document.getElementById('room-status');
+            const isCurrentlyPublic = (status.innerText === 'CÔNG CỘNG');
+            
+            status.innerText = isCurrentlyPublic ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            status.style.color = isCurrentlyPublic ? '#ff00ff' : '#00ff00';
+            
             loadNotes();
         }
 
         function loadNotes() {
-            const currentPath = getPath();
-            // QUAN TRỌNG: Ngắt toàn bộ kết nối tới các đường dẫn cũ trước khi nạp mới
-            db.ref('notes').off();
-            db.ref(`notes/private/${userId}`).off();
+            const statusText = document.getElementById('room-status').innerText;
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             
-            db.ref(currentPath).on('value', (snapshot) => {
+            // Lưu lại ID để lần sau mở web vẫn còn
+            localStorage.setItem('note_user_id', typedId);
+            
+            const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
+
+            // Ngắt kết nối tất cả các đường dẫn có thể có để làm sạch bộ nhớ
+            db.ref('notes').off();
+            db.ref(`notes/private/${typedId}`).off();
+            // Thêm một dòng ngắt kết nối tổng quát cho chắc ăn
+            db.ref(path).off(); 
+
+            db.ref(path).on('value', (snapshot) => {
                 wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
                     const item = data[id];
-                    if(item.x && item.y) renderNote(id, item, currentPath);
+                    if(item.x && item.y) renderNote(id, item, path);
                 });
             });
         }
@@ -171,3 +172,49 @@
 
             makeDraggable(note, id, path);
             wall.appendChild(note);
+        }
+
+        function makeDraggable(el, id, path) {
+            let oX, oY;
+            el.onmousedown = (e) => {
+                if(document.activeElement === el) return;
+                e.stopPropagation();
+                oX = e.clientX - el.offsetLeft;
+                oY = e.clientY - el.offsetTop;
+                const onMove = (ev) => {
+                    el.style.left = (ev.clientX - oX) + 'px';
+                    el.style.top = (ev.clientY - oY) + 'px';
+                };
+                const onStop = () => {
+                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onStop);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onStop);
+            };
+        }
+
+        function sendToCloud() {
+            const input = document.getElementById('note-input');
+            if (!input.value.trim()) return;
+
+            // ĐỌC TRỰC TIẾP TỪ GIAO DIỆN TẠI GIÂY PHÚT BẤM NÚT
+            const statusText = document.getElementById('room-status').innerText;
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
+            const finalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
+
+            db.ref(finalPath).push({
+                text: input.value,
+                x: (Math.abs(wallLeft) + 80) + 'px',
+                y: (Math.abs(wallTop) + 80) + 'px',
+                color: document.getElementById('color-picker').value
+            });
+            input.value = "";
+        }
+        
+        // Khởi động
+        loadNotes();
+    </script>
+</body>
+</html>
