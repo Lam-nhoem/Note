@@ -56,6 +56,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
+            user-select: none; /* Ngăn chọn văn bản khi nhấn giữ */
         }
 
         #dock {
@@ -80,7 +81,7 @@
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
             <p>• <b>edit:</b> nhấn trực tiếp vào tờ note để sửa</p>
-            <p>• <b>delete:</b> nhấn giữ lâu để xóa vĩnh viễn</p>
+            <p>• <b>delete:</b> nhấn giữ 1 giây để xóa</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -216,17 +217,25 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            // Xử lý Xóa vĩnh viễn bằng ContextMenu (Chuột phải hoặc Nhấn giữ lâu)
-            note.oncontextmenu = (e) => {
-                e.preventDefault(); // Ngăn menu mặc định của trình duyệt
-                if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                    fullRef.remove();
-                }
-                return false;
+            // Logic Xóa vĩnh viễn bằng cách Nhấn giữ (Long Press)
+            let pressTimer;
+
+            const startPress = (e) => {
+                pressTimer = window.setTimeout(() => {
+                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
+                        fullRef.remove();
+                    }
+                }, 800); // Nhấn giữ 0.8 giây để xóa
             };
 
-            note.addEventListener('touchstart', (e) => e.stopPropagation());
-            note.addEventListener('mousedown', (e) => e.stopPropagation());
+            const cancelPress = () => { clearTimeout(pressTimer); };
+
+            note.addEventListener('mousedown', startPress);
+            note.addEventListener('touchstart', startPress, {passive: true});
+            note.addEventListener('mouseup', cancelPress);
+            note.addEventListener('mouseleave', cancelPress);
+            note.addEventListener('touchend', cancelPress, {passive: true});
+            note.addEventListener('touchmove', cancelPress, {passive: true});
 
             note.onblur = () => {
                 if(note.innerText.trim() !== "") {
