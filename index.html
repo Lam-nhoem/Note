@@ -16,7 +16,7 @@
 
         #guide-box {
             position: fixed; top: 10px; left: 10px;
-            width: 200px; background: rgba(25, 25, 25, 0.95);
+            width: 220px; background: rgba(25, 25, 25, 0.95);
             border: 1px solid #444; border-radius: 12px;
             padding: 12px; z-index: 2000; font-size: 11px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -26,7 +26,8 @@
             margin: 0; color: #00ff00; font-size: 14px; 
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
-        #guide-content { display: block; margin-top: 5px; }
+        #guide-content { display: block; margin-top: 8px; }
+        #guide-box p { margin: 5px 0; color: #ccc; line-height: 1.4; }
         
         .admin-link {
             color: #00ccff; text-decoration: none; font-weight: bold;
@@ -36,7 +37,8 @@
         }
 
         .dev-tag {
-            font-size: 11px; color: #ccc; line-height: 1.5;
+            border-top: 1px solid #333; margin-top: 10px; padding-top: 8px;
+            font-size: 10px; color: #888; font-style: italic;
         }
 
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
@@ -74,9 +76,12 @@
     <div id="guide-box">
         <h3 onclick="toggleGuide()">UPDATE.8 👾 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
+            <p>• <b>move:</b> nhấn vào vùng đen để di chuyển</p>
+            <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
+            
             <div class="dev-tag">
                 developed by Tung Lam <br>
-                Mọi thắc mắc liên hệ: 
+                mọi thắc mắc xin liên hệ : 
                 <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">admin</a>
             </div>
         </div>
@@ -205,29 +210,37 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            note.setAttribute('data-path', `${currentPath}/${id}`);
+            note.setAttribute('data-id', id);
+            note.setAttribute('data-path', currentPath);
 
             note.addEventListener('touchstart', (e) => e.stopPropagation());
             note.addEventListener('mousedown', (e) => e.stopPropagation());
 
             const deleteMe = () => {
                 if(confirm("Xóa vĩnh viễn nhé?")) {
-                    const fullPath = note.getAttribute('data-path');
-                    db.ref(fullPath).remove().then(() => { note.remove(); });
+                    const noteId = note.getAttribute('data-id');
+                    const notePath = note.getAttribute('data-path');
+                    db.ref(`${notePath}/${noteId}`).remove();
                 }
             };
 
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
                 const now = new Date().getTime();
-                if (now - lastTap < 300 && now - lastTap > 0) { deleteMe(); e.preventDefault(); }
+                if (now - lastTap < 300 && now - lastTap > 0) { 
+                    deleteMe(); 
+                    e.preventDefault(); 
+                }
                 lastTap = now;
             });
             note.ondblclick = deleteMe;
 
             note.onblur = () => {
-                const fullPath = note.getAttribute('data-path');
-                if(note.innerText.trim() !== "") db.ref(fullPath).update({ text: note.innerText });
+                const noteId = note.getAttribute('data-id');
+                const notePath = note.getAttribute('data-path');
+                if(note.innerText.trim() !== "") {
+                    db.ref(`${notePath}/${noteId}`).update({ text: note.innerText });
+                }
             };
 
             makeDraggable(note);
@@ -248,8 +261,9 @@
                     el.style.top = (mY - oY) + 'px';
                 };
                 const stop = () => {
-                    const fullPath = el.getAttribute('data-path');
-                    db.ref(fullPath).update({ x: el.style.left, y: el.style.top });
+                    const noteId = el.getAttribute('data-id');
+                    const notePath = el.getAttribute('data-path');
+                    db.ref(`${notePath}/${noteId}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
                     window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
                 };
