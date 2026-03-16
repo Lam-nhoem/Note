@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Free Note - made by bad guy</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
@@ -9,15 +10,17 @@
     <style>
         body { 
             background-color: #000; margin: 0; padding: 0;
-            font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
+            font-family: sans-serif; overflow: hidden; color: white; 
+            /* Cho phép zoom trình duyệt */
+            touch-action: none; 
         }
 
-        /* Giữ nguyên 100% nội dung và style của Lâm */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 250px; background: rgba(30, 30, 30, 0.9);
             border: 1px solid #444; border-radius: 10px;
             padding: 15px; z-index: 2000; font-size: 13px;
+            pointer-events: none; /* Tránh cản trở việc kéo trên mobile */
         }
         #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 16px; }
         #guide-box p { margin: 6px 0; color: #bbb; line-height: 1.4; }
@@ -28,6 +31,7 @@
             top: 0; left: 0; 
             background-image: radial-gradient(#333 1px, transparent 1px);
             background-size: 50px 50px; 
+            transform-origin: 0 0; /* Để zoom đúng tâm */
         }
 
         .sticky-note {
@@ -35,31 +39,31 @@
             position: absolute; color: #000; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
-            z-index: 100;
+            z-index: 100; touch-action: none;
         }
 
         #dock {
             position: fixed; bottom: 0; width: 100%; height: 110px;
             background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; gap: 15px; z-index: 1000;
+            display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000;
         }
 
         .input-group { display: flex; flex-direction: column; gap: 4px; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 90px; text-align: center; }
-        #note-input { width: 250px; height: 60px; border-radius: 5px; border: none; padding: 8px; }
-        #add-btn { background: #fff; color: #000; border: none; padding: 0 20px; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
-        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
+        #note-input { width: 120px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
+        #add-btn { background: #fff; color: #000; border: none; padding: 0 15px; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
+        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div id="guide-box">
-        <h3>UPDATE.6 😾</h3>
+        <h3>UPDATE.7 👤</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
         <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
-        <p>- <b>delete:</b> Double click để xóa note.</p>
-        <p>- <b>Hello, Lâm dayy, web của mình mới có update mới á mí bạn, nên là bây giờ xoá note thoải mái và trơn tru hơn nhiều ròi á ! Có gì góp ý thì dán note lên nha, nào rảnh mình đọc ròi mình thêm ý tưởng của mí bạn vào nè !</b>
+        <p>- <b>delete:</b> Double click (hoặc nhấn đúp trên mobile) để xóa note.</p>
+        <p>- <b>Hello, Lâm dayy, web của mình mới có update mới á mí bạn, nên là bây giờ xoá note thoải mái và trơn tru hơn nhiều ròi á ! Có gì góp ý thì dán note lên nha, nào rảnh mình đọc ròi mình thêm ý tưởng của mí bạn vào nè !</b></p>
     </div>
 
     <div id="viewport">
@@ -75,7 +79,7 @@
             <input type="text" id="user-id-input" placeholder="Mã...">
         </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; cursor: pointer; border:none;">
+        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; cursor: pointer; border:none;">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
@@ -92,59 +96,90 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Khởi tạo ID ban đầu
         let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = currentUserId;
 
-        let wallLeft = 0, wallTop = 0, isPanning = false, startX, startY;
+        let wallLeft = 0, wallTop = 0, scale = 1;
+        let isPanning = false, startX, startY;
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
 
-        viewport.onmousedown = (e) => {
+        // Xử lý kéo nền (Mouse + Touch)
+        function startDrag(e) {
             if(e.target !== viewport && e.target !== wall) return;
-            isPanning = true; viewport.style.cursor = 'grabbing';
-            startX = e.clientX - wallLeft; startY = e.clientY - wallTop;
-        };
-        window.onmousemove = (e) => {
+            isPanning = true;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            startX = clientX - wallLeft;
+            startY = clientY - wallTop;
+        }
+
+        function moveDrag(e) {
             if (!isPanning) return;
-            wallLeft = e.clientX - startX; wallTop = e.clientY - startY;
-            wall.style.left = wallLeft + 'px'; wall.style.top = wallTop + 'px';
-        };
-        window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            wallLeft = clientX - startX;
+            wallTop = clientY - startY;
+            updateWallTransform();
+        }
+
+        function endDrag() { isPanning = false; }
+
+        function updateWallTransform() {
+            wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`;
+        }
+
+        viewport.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('mouseup', endDrag);
+        viewport.addEventListener('touchstart', startDrag);
+        window.addEventListener('touchmove', moveDrag, {passive: false});
+        window.addEventListener('touchend', endDrag);
+
+        // Zoom (Chuột lăn + Pinch to zoom trên mobile)
+        let initialDist = null;
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.001;
+            scale -= e.deltaY * zoomSpeed;
+            scale = Math.min(Math.max(0.2, scale), 3);
+            updateWallTransform();
+        }, {passive: false});
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                if (initialDist === null) initialDist = dist;
+                else {
+                    scale *= dist / initialDist;
+                    initialDist = dist;
+                    scale = Math.min(Math.max(0.2, scale), 3);
+                    updateWallTransform();
+                }
+            }
+        }, {passive: false});
+        viewport.addEventListener('touchend', () => initialDist = null);
 
         function toggleMode() {
             const status = document.getElementById('room-status');
             const isCurrentlyPublic = (status.innerText === 'CÔNG CỘNG');
-            
             status.innerText = isCurrentlyPublic ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             status.style.color = isCurrentlyPublic ? '#ff00ff' : '#00ff00';
-            
             loadNotes();
         }
 
         function loadNotes() {
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            
-            // Lưu lại ID để lần sau mở web vẫn còn
             localStorage.setItem('note_user_id', typedId);
-            
             const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-
-            // Ngắt kết nối tất cả các đường dẫn có thể có để làm sạch bộ nhớ
             db.ref('notes').off();
             db.ref(`notes/private/${typedId}`).off();
-            // Thêm một dòng ngắt kết nối tổng quát cho chắc ăn
-            db.ref(path).off(); 
-
             db.ref(path).on('value', (snapshot) => {
                 wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
-                Object.keys(data).forEach(id => {
-                    const item = data[id];
-                    if(item.x && item.y) renderNote(id, item, path);
-                });
+                Object.keys(data).forEach(id => renderNote(id, data[id], path));
             });
         }
 
@@ -156,18 +191,30 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            note.onmousedown = (e) => e.stopPropagation();
+            
+            // Chống kéo nhầm khi đang viết
+            note.addEventListener('touchstart', (e) => e.stopPropagation());
+            note.addEventListener('mousedown', (e) => e.stopPropagation());
+
+            // Xóa note cho mobile (Nhấn đúp)
+            let lastTap = 0;
+            note.addEventListener('touchend', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 500 && tapLength > 0) {
+                    if(confirm("Xóa nhé?")) db.ref(`${path}/${id}`).set(null);
+                    e.preventDefault();
+                }
+                lastTap = currentTime;
+            });
+
+            note.ondblclick = () => {
+                if(confirm("Xóa nhé?")) db.ref(`${path}/${id}`).set(null);
+            };
 
             note.onblur = () => {
                 if(note.innerText.trim() === "") return;
                 db.ref(`${path}/${id}`).update({ text: note.innerText });
-            };
-
-            note.ondblclick = (e) => {
-                e.stopPropagation();
-                if(confirm("Xóa nhé?")) {
-                    db.ref(`${path}/${id}`).set(null);
-                }
             };
 
             makeDraggable(note, id, path);
@@ -176,44 +223,44 @@
 
         function makeDraggable(el, id, path) {
             let oX, oY;
-            el.onmousedown = (e) => {
+            const start = (e) => {
                 if(document.activeElement === el) return;
-                e.stopPropagation();
-                oX = e.clientX - el.offsetLeft;
-                oY = e.clientY - el.offsetTop;
-                const onMove = (ev) => {
-                    el.style.left = (ev.clientX - oX) + 'px';
-                    el.style.top = (ev.clientY - oY) + 'px';
-                };
-                const onStop = () => {
-                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onStop);
-                };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onStop);
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                oX = clientX - el.offsetLeft;
+                oY = clientY - el.offsetTop;
+                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
+                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
             };
+            const move = (e) => {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                el.style.left = (clientX - oX) + 'px';
+                el.style.top = (clientY - oY) + 'px';
+            };
+            const stop = (e) => {
+                db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+                window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
+                window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
+            };
+            el.addEventListener('mousedown', start);
+            el.addEventListener('touchstart', start);
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-
-            // ĐỌC TRỰC TIẾP TỪ GIAO DIỆN TẠI GIÂY PHÚT BẤM NÚT
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             const finalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-
             db.ref(finalPath).push({
                 text: input.value,
-                x: (Math.abs(wallLeft) + 80) + 'px',
-                y: (Math.abs(wallTop) + 80) + 'px',
+                x: (Math.abs(wallLeft) + 50) + 'px',
+                y: (Math.abs(wallTop) + 50) + 'px',
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
         }
-        
-        // Khởi động
         loadNotes();
     </script>
 </body>
