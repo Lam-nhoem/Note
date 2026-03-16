@@ -12,7 +12,6 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn - Giữ đúng nội dung gốc của Lâm */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 250px; background: rgba(30, 30, 30, 0.9);
@@ -22,7 +21,6 @@
         #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 16px; }
         #guide-box p { margin: 6px 0; color: #bbb; line-height: 1.4; }
 
-        /* Không gian vô hạn */
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
             position: absolute; width: 10000px; height: 10000px; 
@@ -55,7 +53,7 @@
 <body>
 
     <div id="guide-box">
-        <h3>UPDATE.4 🧶</h3>
+        <h3>UPDATE.5 🧶</h3>
         <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
         <p>- <b>private room:</b> Nhập Mã ID sẽ giống như là 1 tài khoản của bạn, nhập mã id để vào phòng cá nhân, (đặt mã id sao cho dễ nhớ nha :>)</p>
         <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
@@ -112,39 +110,44 @@
         };
         window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
 
-        let isPrivate = false, currentPath = 'notes';
+        let isPrivate = false;
+        
+        // Hàm lấy đường dẫn chuẩn xác nhất tại mọi thời điểm
+        function getPath() {
+            return isPrivate ? `notes/private/${userId}` : 'notes';
+        }
 
         function updateUserId(val) { 
             userId = val.trim() || userId; 
             localStorage.setItem('note_user_id', userId); 
-            if(isPrivate) {
-                currentPath = `notes/private/${userId}`;
-                loadNotes(); 
-            }
+            if(isPrivate) loadNotes(); 
         }
         
         function toggleMode() {
             isPrivate = !isPrivate;
-            currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
             document.getElementById('room-status').innerText = isPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             document.getElementById('room-status').style.color = isPrivate ? '#ff00ff' : '#00ff00';
             loadNotes();
         }
 
         function loadNotes() {
-            db.ref(currentPath).off(); 
+            const currentPath = getPath();
+            // QUAN TRỌNG: Ngắt toàn bộ kết nối tới các đường dẫn cũ trước khi nạp mới
+            db.ref('notes').off();
+            db.ref(`notes/private/${userId}`).off();
+            
             db.ref(currentPath).on('value', (snapshot) => {
                 wall.innerHTML = ""; 
                 const data = snapshot.val();
                 if(!data) return;
                 Object.keys(data).forEach(id => {
                     const item = data[id];
-                    if(item.x && item.y) renderNote(id, item);
+                    if(item.x && item.y) renderNote(id, item, currentPath);
                 });
             });
         }
 
-        function renderNote(id, item) {
+        function renderNote(id, item, path) {
             const note = document.createElement('div');
             note.className = 'sticky-note';
             note.contentEditable = "true";
@@ -156,58 +159,15 @@
 
             note.onblur = () => {
                 if(note.innerText.trim() === "") return;
-                db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
+                db.ref(`${path}/${id}`).update({ text: note.innerText });
             };
 
             note.ondblclick = (e) => {
                 e.stopPropagation();
                 if(confirm("Xóa nhé?")) {
-                    db.ref(`${currentPath}/${id}`).set(null);
+                    db.ref(`${path}/${id}`).set(null);
                 }
             };
 
-            makeDraggable(note, id);
+            makeDraggable(note, id, path);
             wall.appendChild(note);
-        }
-
-        function makeDraggable(el, id) {
-            let oX, oY;
-            el.onmousedown = (e) => {
-                if(document.activeElement === el) return;
-                e.stopPropagation();
-                oX = e.clientX - el.offsetLeft;
-                oY = e.clientY - el.offsetTop;
-                const onMove = (ev) => {
-                    el.style.left = (ev.clientX - oX) + 'px';
-                    el.style.top = (ev.clientY - oY) + 'px';
-                };
-                const onStop = () => {
-                    db.ref(`${currentPath}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onStop);
-                };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onStop);
-            };
-        }
-
-        function sendToCloud() {
-            const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-
-            // KIỂM TRA TRỰC TIẾP TRẠNG THÁI NÚT BẤM ĐỂ TRÁNH NHẢY PHÒNG
-            const currentStatus = document.getElementById('room-status').innerText;
-            const finalPath = (currentStatus === 'CÁ NHÂN') ? `notes/private/${userId}` : 'notes';
-
-            db.ref(finalPath).push({
-                text: input.value,
-                x: (Math.abs(wallLeft) + 80) + 'px',
-                y: (Math.abs(wallTop) + 80) + 'px',
-                color: document.getElementById('color-picker').value
-            });
-            input.value = "";
-        }
-        loadNotes();
-    </script>
-</body>
-</html>
