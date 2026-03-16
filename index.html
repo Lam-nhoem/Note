@@ -14,18 +14,22 @@
             touch-action: none; 
         }
 
+        /* KHÔI PHỤC GUIDE BOX CHUẨN */
         #guide-box {
             position: fixed; top: 10px; left: 10px;
             width: 230px; background: rgba(25, 25, 25, 0.95);
             border: 1px solid #444; border-radius: 12px;
             padding: 12px; z-index: 2000; font-size: 11px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            transition: all 0.3s ease;
         }
-        #guide-box h3 { margin: 0; color: #00ff00; font-size: 14px; cursor: pointer; }
+        #guide-box h3 { 
+            margin: 0; color: #00ff00; font-size: 14px; 
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
         #guide-content { display: block; margin-top: 8px; }
-        #guide-box p { margin: 4px 0; color: #ccc; }
+        #guide-box p { margin: 4px 0; color: #ccc; line-height: 1.4; }
         
-        /* Link Admin của Lâm */
         .admin-link {
             color: #00ccff; text-decoration: none; font-weight: bold;
             background: linear-gradient(90deg, #00ff00, #00ccff);
@@ -38,9 +42,10 @@
             font-size: 10px; color: #888; font-style: italic;
         }
 
-        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; background: #000; }
+        /* KHÔI PHỤC VÔ HẠN */
+        #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
-            position: absolute; width: 5000px; height: 5000px; 
+            position: absolute; width: 10000px; height: 10000px; 
             top: 0; left: 0; 
             background-image: radial-gradient(#333 1px, transparent 1px);
             background-size: 50px 50px; 
@@ -51,10 +56,10 @@
             width: 170px; min-height: 100px; padding: 12px;
             position: absolute; color: #000; border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            font-size: 14px; cursor: move; word-wrap: break-word;
-            z-index: 100; touch-action: none; user-select: none;
+            font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
+            z-index: 100; touch-action: none;
             display: flex; align-items: center; justify-content: center;
-            text-align: center; font-weight: 500;
+            text-align: center;
         }
 
         #dock {
@@ -67,15 +72,17 @@
         #user-id-input { background: #1a1a1a; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
         #note-input { width: 120px; height: 60px; border-radius: 6px; border: 1px solid #333; background: #fff; padding: 8px; font-size: 14px; color: #000; }
         #add-btn { background: #fff; color: #000; border: none; padding: 0 15px; font-weight: bold; border-radius: 6px; height: 60px; cursor: pointer; }
+        #room-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="guide-box">
-        <h3>UPDATE.21 👾</h3>
+        <h3 onclick="toggleGuide()">UPDATE.9 👾 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
             <p>• <b>move:</b> chạm kéo để di chuyển</p>
             <p>• <b>zoom:</b> 2 ngón tay thu phóng</p>
+            <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
             <p>• <b>delete:</b> gõ 2 lần để xóa vĩnh viễn</p>
             
             <div class="dev-tag">
@@ -89,7 +96,7 @@
     <div id="viewport"><div id="wall"></div></div>
 
     <div id="dock">
-        <div id="room-btn" onclick="toggleMode()" style="cursor:pointer; text-align:center; font-size:11px;">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
+        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
         <div class="input-group"><span style="font-size: 9px; color: #777;">ID:</span><input type="text" id="user-id-input" placeholder="ID..."></div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; background:none; cursor: pointer;">
@@ -97,6 +104,13 @@
     </div>
 
     <script>
+        function toggleGuide() {
+            const content = document.getElementById('guide-content');
+            const arrow = document.getElementById('guide-arrow');
+            content.style.display = (content.style.display === "none") ? "block" : "none";
+            arrow.innerText = (content.style.display === "none") ? "▼" : "▲";
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -109,9 +123,13 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // KHÔI PHỤC ID RIÊNG TƯ
+        let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
+        document.getElementById('user-id-input').value = currentUserId;
+
         let wallLeft = 0, wallTop = 0, scale = 1;
         let isPanning = false, startX, startY;
-        let initialDist = null;
+        let initialDist = null; 
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
 
@@ -154,7 +172,9 @@
 
         function loadNotes() {
             const statusText = document.getElementById('room-status').innerText;
-            const typedId = document.getElementById('user-id-input').value.trim() || 'default';
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
+            localStorage.setItem('note_user_id', typedId); // Lưu lại ID để không bị mất
+            
             wall.innerHTML = "";
             const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
             
@@ -179,11 +199,11 @@
             note.style.top = item.y || '100px';
             note.style.backgroundColor = item.color || '#fff';
             
+            // Xóa bằng Double Tap
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
                 const now = new Date().getTime();
-                const diff = now - lastTap;
-                if (diff < 300 && diff > 0) {
+                if (now - lastTap < 300 && now - lastTap > 0) {
                     if (confirm("Xóa vĩnh viễn?")) db.ref(`${currentPath}/${id}`).remove();
                 }
                 lastTap = now;
@@ -214,12 +234,12 @@
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
             const statusText = document.getElementById('room-status').innerText;
-            const typedId = document.getElementById('user-id-input').value.trim() || 'default';
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
             db.ref(path).push({
                 text: input.value,
-                x: (Math.abs(wallLeft) + 100) / scale + 'px',
-                y: (Math.abs(wallTop) + 100) / scale + 'px',
+                x: (Math.abs(wallLeft) + 150) / scale + 'px',
+                y: (Math.abs(wallTop) + 150) / scale + 'px',
                 color: document.getElementById('color-picker').value
             });
             input.value = "";
