@@ -56,26 +56,15 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
-            user-select: none;
-            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; /* Hiệu ứng mượt mà khi nhấn */
+            transition: opacity 0.3s ease, transform 0.3s ease-out;
+            box-sizing: border-box;
         }
 
-        /* Hiệu ứng lún xuống khi đang nhấn giữ */
-        .sticky-note.pressing {
-            transform: scale(0.9) !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
-        }
-
-        /* Hiệu ứng rung rinh khi chuẩn bị xóa (như iPhone) */
-        @keyframes jiggle {
-            0% { transform: scale(1) rotate(-1deg); }
-            50% { transform: scale(1) rotate(1deg); }
-            100% { transform: scale(1) rotate(-1deg); }
-        }
-
-        .sticky-note.jiggling {
-            animation: jiggle 0.2s infinite;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6) !important;
+        /* Hiệu ứng bay đi khi bị xóa */
+        .sticky-note.deleting {
+            opacity: 0 !important;
+            transform: translateY(-200px) scale(0.5) !important;
+            pointer-events: none;
         }
 
         #dock {
@@ -99,8 +88,8 @@
             <p>• <b>move:</b> nhấn vào vùng đen để di chuyển</p>
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
-            <p>• <b>edit:</b> nhấn trực tiếp vào tờ note để sửa</p>
-            <p>• <b>delete:</b> nhấn giữ 1 giây để xóa (hiệu ứng iPhone)</p>
+            <p>• <b>edit:</b> nhấn vào note để sửa nội dung</p>
+            <p>• <b>delete:</b> vuốt mạnh lên trên để xóa</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -236,39 +225,42 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            // Logic Xóa vĩnh viễn bằng cách Nhấn giữ (Long Press) với hiệu ứng
-            let pressTimer;
+            // Logic Vuốt lên để xóa (Swipe Up to Delete)
+            let startY = 0;
+            let currentY = 0;
+            let isSwiping = false;
 
-            const startPress = (e) => {
-                cancelPress(); // Xóa timer cũ nếu có
-                note.classList.add('pressing'); // Thêm hiệu ứng lún xuống ngay lập tức
-                
-                pressTimer = window.setTimeout(() => {
-                    note.classList.remove('pressing'); // Bỏ hiệu ứng lún
-                    note.classList.add('jiggling'); // Thêm hiệu ứng rung rinh (nổi lên)
+            note.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isSwiping = true;
+                note.style.transition = 'none';
+            }, {passive: true});
 
-                    // Sử dụng setTimeout nhẹ để bảng thông báo hiện sau hiệu ứng rung
-                    window.setTimeout(() => {
-                        if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                            fullRef.remove();
-                        } else {
-                            note.classList.remove('jiggling'); // Ngừng rung nếu hủy xóa
-                        }
-                    }, 10);
-                }, 1000); // Nhấn giữ đủ 1 giây để kích hoạt xóa
-            };
+            note.addEventListener('touchmove', (e) => {
+                if (!isSwiping || document.activeElement === note) return;
+                let diff = e.touches[0].clientY - startY;
+                if (diff < 0) { // Chỉ cho vuốt lên
+                    currentY = diff;
+                    note.style.transform = `translateY(${currentY}px)`;
+                    note.style.opacity = Math.max(1 + diff / 200, 0.5);
+                }
+            }, {passive: true});
 
-            const cancelPress = () => { 
-                clearTimeout(pressTimer); 
-                note.classList.remove('pressing'); // Bỏ hiệu ứng lún nếu buông tay sớm
-            };
-
-            note.addEventListener('mousedown', startPress);
-            note.addEventListener('touchstart', startPress, {passive: true});
-            note.addEventListener('mouseup', cancelPress);
-            note.addEventListener('mouseleave', cancelPress);
-            note.addEventListener('touchend', cancelPress, {passive: true});
-            note.addEventListener('touchmove', cancelPress, {passive: true});
+            note.addEventListener('touchend', () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                if (currentY < -150) { // Nếu vuốt lên đủ mạnh
+                    note.classList.add('deleting');
+                    setTimeout(() => {
+                        fullRef.remove();
+                    }, 300);
+                } else {
+                    note.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                    note.style.transform = 'translateY(0px)';
+                    note.style.opacity = '1';
+                }
+                currentY = 0;
+            }, {passive: true});
 
             note.onblur = () => {
                 if(note.innerText.trim() !== "") {
@@ -283,8 +275,8 @@
         function makeDraggable(el, ref) {
             let oX, oY;
             const start = (e) => {
-                // Đảm bảo không kéo khi đang gõ phím hoặc đang rung rinh (chuẩn bị xóa)
-                if(document.activeElement === el || (e.touches && e.touches.length > 1) || el.classList.contains('jiggling')) return;
+                // Chỉ kéo khi không đang gõ phím
+                if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
                 const cY = e.touches ? e.touches[0].clientY : e.clientY;
                 oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
