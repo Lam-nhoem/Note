@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Free Note - made by bad guy</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
@@ -29,28 +29,16 @@
         #guide-content { display: block; margin-top: 8px; }
         #guide-box p { margin: 5px 0; color: #ccc; line-height: 1.4; }
         
-        /* Hiệu ứng màu xanh cho admin */
         .admin-link {
-            color: #00ccff; 
-            text-decoration: none;
-            font-weight: bold;
+            color: #00ccff; text-decoration: none; font-weight: bold;
             background: linear-gradient(90deg, #00ff00, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             display: inline-block;
-        }
-        .admin-link:hover {
-            filter: brightness(1.2);
-            text-decoration: underline;
         }
 
         .dev-tag {
-            border-top: 1px solid #333;
-            margin-top: 10px;
-            padding-top: 8px;
-            font-size: 10px;
-            color: #888;
-            font-style: italic;
+            border-top: 1px solid #333; margin-top: 10px; padding-top: 8px;
+            font-size: 10px; color: #888; font-style: italic;
         }
 
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
@@ -88,10 +76,10 @@
     <div id="guide-box">
         <h3 onclick="toggleGuide()">UPDATE.8 👾 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
-            <p>• <b>Kéo:</b> Nhấn vùng đen</p>
-            <p>• <b>Zoom:</b> Dùng 2 ngón tay</p>
-            <p>• <b>Phòng:</b> Nhập Mã ID</p>
-            <p>• <b>Sửa:</b> Nhấn vào note</p>
+            <p>• <b>Kéo:</b> Nhấn vùng đen để di chuyển</p>
+            <p>• <b>Zoom:</b> Dùng 2 ngón tay (Mobile)</p>
+            <p>• <b>Phòng:</b> Nhập Mã ID riêng</p>
+            <p>• <b>Sửa:</b> Nhấn trực tiếp vào note</p>
             <p>• <b>Xóa:</b> Nhấn đúp (Double tap)</p>
             
             <div class="dev-tag">
@@ -116,13 +104,8 @@
         function toggleGuide() {
             const content = document.getElementById('guide-content');
             const arrow = document.getElementById('guide-arrow');
-            if (content.style.display === "none") {
-                content.style.display = "block";
-                arrow.innerText = "▲";
-            } else {
-                content.style.display = "none";
-                arrow.innerText = "▼";
-            }
+            content.style.display = (content.style.display === "none") ? "block" : "none";
+            arrow.innerText = (content.style.display === "none") ? "▼" : "▲";
         }
 
         const firebaseConfig = {
@@ -140,7 +123,10 @@
         let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = currentUserId;
 
-        let wallLeft = 0, wallTop = 0, scale = 1, isPanning = false, startX, startY;
+        let wallLeft = 0, wallTop = 0, scale = 1;
+        let isPanning = false, startX, startY;
+        let initialDist = null; 
+
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
 
@@ -148,24 +134,42 @@
 
         const startDrag = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
-            isPanning = true;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = cX - wallLeft; startY = cY - wallTop;
+            if (e.touches && e.touches.length === 2) {
+                isPanning = false; 
+                initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            } else {
+                isPanning = true;
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = cX - wallLeft; startY = cY - wallTop;
+            }
         };
+
         const moveDrag = (e) => {
-            if (!isPanning) return;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            wallLeft = cX - startX; wallTop = cY - startY;
-            updateWallTransform();
+            if (e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                let currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                if (initialDist) {
+                    let zoomFactor = currentDist / initialDist;
+                    scale *= zoomFactor;
+                    scale = Math.min(Math.max(0.2, scale), 3);
+                    updateWallTransform();
+                    initialDist = currentDist;
+                }
+            } else if (isPanning) {
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                wallLeft = cX - startX; wallTop = cY - startY;
+                updateWallTransform();
+            }
         };
+
         viewport.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', moveDrag);
         window.addEventListener('mouseup', () => isPanning = false);
-        viewport.addEventListener('touchstart', startDrag);
+        viewport.addEventListener('touchstart', startDrag, {passive: false});
         window.addEventListener('touchmove', moveDrag, {passive: false});
-        window.addEventListener('touchend', () => isPanning = false);
+        window.addEventListener('touchend', () => { isPanning = false; initialDist = null; });
 
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
@@ -241,7 +245,7 @@
         function makeDraggable(el) {
             let oX, oY;
             const start = (e) => {
-                if(document.activeElement === el) return;
+                if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
                 const cY = e.touches ? e.touches[0].clientY : e.clientY;
                 oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
