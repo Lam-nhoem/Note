@@ -80,6 +80,7 @@
             <p>• <b>zoom:</b> dùng 2 ngón tay để thu, phóng</p>
             <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
             <p>• <b>edit:</b> nhấn trực tiếp vào tờ note để sửa</p>
+            <p>• <b>delete:</b> nhấn giữ lâu để xóa vĩnh viễn</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -215,28 +216,17 @@
             
             const fullRef = db.ref(`${currentPath}/${id}`);
 
-            note.addEventListener('touchstart', (e) => e.stopPropagation());
-            note.addEventListener('mousedown', (e) => e.stopPropagation());
-
-            let lastTap = 0;
-            const handleDelete = (e) => {
-                const now = new Date().getTime();
-                const timesince = now - lastTap;
-                if (timesince < 300 && timesince > 0) {
-                    if (confirm("Xóa vĩnh viễn tờ note này?")) {
-                        fullRef.remove();
-                    }
-                    e.preventDefault();
-                }
-                lastTap = now;
-            };
-
-            note.addEventListener('touchend', handleDelete);
-            note.addEventListener('dblclick', (e) => {
+            // Xử lý Xóa vĩnh viễn bằng ContextMenu (Chuột phải hoặc Nhấn giữ lâu)
+            note.oncontextmenu = (e) => {
+                e.preventDefault(); // Ngăn menu mặc định của trình duyệt
                 if (confirm("Xóa vĩnh viễn tờ note này?")) {
                     fullRef.remove();
                 }
-            });
+                return false;
+            };
+
+            note.addEventListener('touchstart', (e) => e.stopPropagation());
+            note.addEventListener('mousedown', (e) => e.stopPropagation());
 
             note.onblur = () => {
                 if(note.innerText.trim() !== "") {
