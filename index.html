@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        * { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; box-sizing: border-box; }
+        * { font-family: sans-serif; box-sizing: border-box; }
         
         body { 
             background-color: #000; margin: 0; padding: 0;
@@ -26,12 +26,14 @@
             margin: 0; color: #00ff00; font-size: 14px; 
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
-        #guide-box p { margin: 5px 0; color: #ccc; line-height: 1.5; }
+        #guide-content { display: block; margin-top: 8px; }
+        #guide-box p { margin: 4px 0; color: #ccc; line-height: 1.4; }
         
         .admin-link {
             color: #00ccff; text-decoration: none; font-weight: bold;
             background: linear-gradient(90deg, #00ff00, #00ccff);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
         .dev-tag {
@@ -41,49 +43,46 @@
 
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
-            position: absolute; 
-            width: 10000px; height: 10000px; 
+            position: absolute; width: 10000px; height: 10000px; 
             top: 0; left: 0; 
             background-image: radial-gradient(#333 1px, transparent 1px);
             background-size: 50px 50px; 
             transform-origin: 0 0;
-            transition: transform 0.05s linear;
         }
 
         .sticky-note {
-            width: 170px; min-height: 110px; padding: 15px;
-            position: absolute; color: #000; border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            font-size: 15px; font-weight: 500;
-            cursor: move; word-wrap: break-word;
+            width: 170px; min-height: 100px; padding: 12px;
+            position: absolute; color: #000; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
             z-index: 100; touch-action: none;
-            display: flex; align-items: center; justify-content: center;
-            text-align: center; line-height: 1.4;
+            display: block;
+            text-align: left;
+            white-space: pre-wrap;
         }
 
         #dock {
             position: fixed; bottom: 0; width: 100%; height: 110px;
-            background: rgba(10, 10, 10, 0.95); border-top: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; gap: 12px; z-index: 1000;
-            backdrop-filter: blur(10px);
+            background: rgba(10, 10, 10, 0.98); border-top: 1px solid #333;
+            display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000;
         }
 
         .input-group { display: flex; flex-direction: column; gap: 4px; }
-        #user-id-input { background: #1a1a1a; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 75px; text-align: center; font-size: 12px; outline: none; }
-        #note-input { width: 130px; height: 65px; border-radius: 8px; border: 1px solid #333; background: #fff; padding: 10px; font-size: 14px; color: #000; resize: none; }
-        #add-btn { background: #fff; color: #000; border: none; padding: 0 20px; font-weight: bold; border-radius: 8px; height: 65px; cursor: pointer; transition: 0.2s; }
-        #room-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 12px; border-radius: 10px; cursor: pointer; text-align: center; font-size: 11px; min-width: 80px; }
+        #user-id-input { background: #1a1a1a; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
+        #note-input { width: 120px; height: 60px; border-radius: 6px; border: 1px solid #333; background: #fff; padding: 8px; font-size: 14px; color: #000; }
+        #add-btn { background: #fff; color: #000; border: none; padding: 0 15px; font-weight: bold; border-radius: 6px; height: 60px; cursor: pointer; }
+        #room-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.24 👾 <span id="guide-arrow">▲</span></h3>
+        <h3 onclick="toggleGuide()">UPDATE.25 😡<span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
-            <p>• <b>Space:</b> Kéo vùng đen để di chuyển vô hạn</p>
-            <p>• <b>Zoom:</b> Dùng 2 ngón tay thu phóng</p>
-            <p>• <b>Private:</b> Nhập mã ID và đổi phòng</p>
-            <p>• <b>Delete:</b> Gõ 2 lần nhanh để xóa</p>
+            <p>• <b>move:</b> nhấn giữ để di chuyển</p>
+            <p>• <b>zoom:</b> dùng 2 ngón tay ngoài vùng note</p>
+            <p>• <b>room:</b> nhập mã để vào phòng riêng</p>
+            <p>• <b>delete:</b> nhấn 2 lần nhanh để xóa</p>
             
             <div class="dev-tag">
                 developed by Tung Lam <br>
@@ -96,10 +95,10 @@
     <div id="viewport"><div id="wall"></div></div>
 
     <div id="dock">
-        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00; font-weight: bold;">CÔNG CỘNG</span></div>
-        <div class="input-group"><span style="font-size: 9px; color: #777;">MÃ ID:</span><input type="text" id="user-id-input" placeholder="Nhập..."></div>
-        <textarea id="note-input" placeholder="Bạn đang nghĩ gì?"></textarea>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; border:none; background:none; cursor: pointer;">
+        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
+        <div class="input-group"><span style="font-size: 9px; color: #777;">MÃ ID:</span><input type="text" id="user-id-input" placeholder="Mã..."></div>
+        <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
+        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; background:none; cursor: pointer;">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
@@ -123,4 +122,148 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUserId = localStorage.getItem('note_user_id') || 'user_' +
+        let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
+        document.getElementById('user-id-input').value = currentUserId;
+
+        let wallLeft = 0, wallTop = 0, scale = 1;
+        let isPanning = false, startX, startY;
+        let initialDist = null; 
+
+        const wall = document.getElementById('wall');
+        const viewport = document.getElementById('viewport');
+
+        function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
+
+        const startDrag = (e) => {
+            if(e.target !== viewport && e.target !== wall) return;
+            if (e.touches && e.touches.length === 2) {
+                isPanning = false; 
+                initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            } else {
+                isPanning = true;
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = cX - wallLeft; startY = cY - wallTop;
+            }
+        };
+
+        const moveDrag = (e) => {
+            if (e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                let currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                if (initialDist) {
+                    let zoomFactor = currentDist / initialDist;
+                    scale *= zoomFactor;
+                    scale = Math.min(Math.max(0.2, scale), 3);
+                    updateWallTransform();
+                    initialDist = currentDist;
+                }
+            } else if (isPanning) {
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                wallLeft = cX - startX; wallTop = cY - startY;
+                updateWallTransform();
+            }
+        };
+
+        viewport.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('mouseup', () => isPanning = false);
+        viewport.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('touchmove', moveDrag, {passive: false});
+        window.addEventListener('touchend', () => { isPanning = false; initialDist = null; });
+
+        function toggleMode() {
+            const status = document.getElementById('room-status');
+            const isToPrivate = (status.innerText === 'CÔNG CỘNG');
+            status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
+            loadNotes();
+        }
+
+        function loadNotes() {
+            const statusText = document.getElementById('room-status').innerText;
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
+            localStorage.setItem('note_user_id', typedId);
+            
+            wall.innerHTML = "";
+            const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
+            
+            db.ref(path).off();
+            db.ref(path).on('value', (snapshot) => {
+                wall.innerHTML = "";
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(id => {
+                        const item = typeof data[id] === 'string' ? {text: data[id], x: '100px', y: '100px'} : data[id];
+                        renderNote(id, item, path);
+                    });
+                }
+            });
+        }
+
+        function renderNote(id, item, currentPath) {
+            const note = document.createElement('div');
+            note.className = 'sticky-note';
+            note.innerText = item.text || "";
+            note.style.left = item.x || '100px';
+            note.style.top = item.y || '100px';
+            note.style.backgroundColor = item.color || '#fff';
+            
+            let lastTap = 0;
+            note.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    if (confirm("Xóa vĩnh viễn tờ note này?")) db.ref(`${currentPath}/${id}`).remove();
+                }
+                lastTap = now;
+            });
+
+            makeDraggable(note, db.ref(`${currentPath}/${id}`));
+            wall.appendChild(note);
+        }
+
+        function makeDraggable(el, ref) {
+            let oX, oY;
+            const start = (e) => {
+                if(e.touches && e.touches.length > 1) return;
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
+                const move = (ev) => {
+                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+                    el.style.left = (mX - oX) + 'px';
+                    el.style.top = (mY - oY) + 'px';
+                };
+                const stop = () => {
+                    ref.update({ x: el.style.left, y: el.style.top });
+                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
+                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
+                };
+                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
+                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
+            };
+            el.addEventListener('mousedown', start);
+            el.addEventListener('touchstart', start);
+        }
+
+        function sendToCloud() {
+            const input = document.getElementById('note-input');
+            if (!input.value.trim()) return;
+            const statusText = document.getElementById('room-status').innerText;
+            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
+            const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
+            
+            db.ref(path).push({
+                text: input.value,
+                x: (Math.abs(wallLeft) + 200) / scale + 'px',
+                y: (Math.abs(wallTop) + 200) / scale + 'px',
+                color: document.getElementById('color-picker').value
+            });
+            input.value = "";
+        }
+        loadNotes();
+    </script>
+</body>
+</html>
