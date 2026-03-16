@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Infinity Space</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
@@ -12,7 +12,6 @@
             font-family: sans-serif; overflow: hidden; color: white; touch-action: none;
         }
 
-        /* Bảng hướng dẫn */
         #guide-box {
             position: fixed; top: 20px; left: 20px;
             width: 250px; background: rgba(30, 30, 30, 0.9);
@@ -22,7 +21,6 @@
         #guide-box h3 { margin: 0 0 8px 0; color: #00ff00; font-size: 16px; }
         #guide-box p { margin: 6px 0; color: #bbb; line-height: 1.4; }
 
-        /* Không gian vô hạn */
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
             position: absolute; width: 10000px; height: 10000px; 
@@ -55,12 +53,10 @@
 <body>
 
     <div id="guide-box">
-        <h3>UPDATE.3 👾</h3>
-        <p>- <b>infinity space:</b> Nhấn vào vùng đen để di chuyển toàn bộ không gian</p>
-        <p>- <b>private room:</b> Nhập Mã ID để vào phòng cá nhân.</p>
-        <p>- <b>edit:</b> Nhấn trực tiếp vào note để sửa nội dung.</p>
-        <p>- <b>delete:</b> Double click để xóa note.</p>
-        <p>- <b>Hello, Lâm dayy! Chúc mừng web được chọn đi thi nha! 🚀</b></p>
+        <h3>PROJECT GO LIVE 🚀</h3>
+        <p>- <b>Private ID:</b> Gõ ID và nhấn chuyển sang "CÁ NHÂN" để lưu ghi chú riêng.</p>
+        <p>- <b>Sync:</b> Mọi thay đổi sẽ tự động lưu lên Cloud ngay lập tức.</p>
+        <p>- <b>Note:</b> Dữ liệu của bạn được bảo mật theo Mã ID cá nhân.</p>
     </div>
 
     <div id="viewport">
@@ -73,7 +69,7 @@
         </div>
         <div class="input-group">
             <span style="font-size: 9px; color: #777;">MÃ ID:</span>
-            <input type="text" id="user-id-input" placeholder="Mã..." onchange="updateUserId(this.value)">
+            <input type="text" id="user-id-input" placeholder="Mã..." oninput="updateUserId(this.value)">
         </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 40px; height: 40px; cursor: pointer; border:none;">
@@ -112,9 +108,9 @@
         };
         window.onmouseup = () => { isPanning = false; viewport.style.cursor = 'grab'; };
 
-        let isPrivate = false, currentPath = 'notes';
+        let isPrivate = false;
+        let currentPath = 'notes';
 
-        // CHỖ SỬA 1: Cập nhật ID và bẻ lái đường dẫn ngay lập tức
         function updateUserId(val) { 
             userId = val.trim() || userId; 
             localStorage.setItem('note_user_id', userId); 
@@ -124,7 +120,6 @@
             }
         }
         
-        // CHỖ SỬA 2: Đảm bảo chuyển chế độ là đúng đường dẫn
         function toggleMode() {
             isPrivate = !isPrivate;
             currentPath = isPrivate ? `notes/private/${userId}` : 'notes';
@@ -196,7 +191,11 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            db.ref(currentPath).push({
+
+            // FIX CỨNG: Ép buộc lấy path mới nhất tại thời điểm bấm nút
+            const finalPath = isPrivate ? `notes/private/${userId}` : 'notes';
+
+            db.ref(finalPath).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + 80) + 'px',
                 y: (Math.abs(wallTop) + 80) + 'px',
@@ -204,6 +203,8 @@
             });
             input.value = "";
         }
+        
+        // Khởi tạo lần đầu
         loadNotes();
     </script>
 </body>
