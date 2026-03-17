@@ -3,90 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Update 31</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { 
-            background-color: #000; margin: 0; padding: 0;
-            font-family: sans-serif; overflow: hidden; color: white; 
-            touch-action: none; 
-        }
-
+        body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
         #guide-box {
-            position: fixed; top: 10px; left: 10px;
-            width: 200px; background: rgba(25, 25, 25, 0.95);
-            border: 1px solid #444; border-radius: 12px;
-            padding: 12px; z-index: 2000; font-size: 11px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            transition: all 0.3s ease;
+            position: fixed; top: 10px; left: 10px; width: 220px; 
+            background: rgba(25, 25, 25, 0.95); border: 1px solid #444; border-radius: 12px;
+            padding: 12px; z-index: 2000; font-size: 11px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        #guide-box h3 { 
-            margin: 0; color: #00ff00; font-size: 14px; 
-            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-        }
-        #guide-content { display: block; margin-top: 5px; }
-        
-        .admin-link {
-            color: #00ccff; text-decoration: none; font-weight: bold;
-            background: linear-gradient(90deg, #00ff00, #00ccff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
-
-        .dev-tag {
-            font-size: 11px; color: #ccc; line-height: 1.5;
-        }
-
+        #guide-box h3 { margin: 0; color: #00ff00; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; }
+        #guide-content { display: block; margin-top: 8px; }
+        .admin-link { color: #00ccff; text-decoration: none; font-weight: bold; }
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
         #wall { 
-            position: absolute; width: 10000px; height: 10000px; 
-            top: 0; left: 0; 
-            background-image: radial-gradient(#333 1px, transparent 1px);
-            background-size: 50px 50px; 
-            transform-origin: 0 0;
+            position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; 
+            background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; transform-origin: 0 0;
         }
-
         .sticky-note {
-            width: 170px; min-height: 100px; padding: 12px;
-            position: absolute; color: #000; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
-            z-index: 100; touch-action: none;
+            width: 170px; min-height: 100px; padding: 12px; position: absolute; 
+            color: #000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            font-size: 14px; cursor: move; word-wrap: break-word; z-index: 100;
         }
-
         #dock {
-            position: fixed; bottom: 0; width: 100%; height: 110px;
-            background: rgba(10, 10, 10, 0.98); border-top: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(10, 10, 10, 0.98); 
+            border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000;
         }
-
-        .input-group { display: flex; flex-direction: column; gap: 4px; }
-        #user-id-input { background: #1a1a1a; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
-        #note-input { width: 120px; height: 60px; border-radius: 6px; border: 1px solid #333; background: #fff; padding: 8px; font-size: 14px; color: #000; }
+        #user-id-input { background: #1a1a1a; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; }
+        #note-input { width: 120px; height: 60px; border-radius: 6px; padding: 8px; font-size: 14px; }
         #add-btn { background: #fff; color: #000; border: none; padding: 0 15px; font-weight: bold; border-radius: 6px; height: 60px; cursor: pointer; }
-        #room-btn { background: #1a1a1a; color: #aaa; border: 1px solid #333; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
     </style>
 </head>
 <body>
-
     <div id="guide-box">
-        <h3 onclick="toggleGuide()">UPDATE.8 👾 <span id="guide-arrow">▲</span></h3>
+        <h3 onclick="toggleGuide()">UPDATE 33 🧶 🚀 <span id="guide-arrow">▲</span></h3>
         <div id="guide-content">
-            <div class="dev-tag">
-                developed by Tung Lam <br>
-                Mọi thắc mắc liên hệ: 
-                <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">admin</a>
-            </div>
+            <p>- Developed by <b>Tung Lam</b></p>
+            <p>- Liên hệ: <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">admin</a></p>
+            <p>- Nhấn đúp để xóa note.</p>
         </div>
     </div>
-
     <div id="viewport"><div id="wall"></div></div>
-
     <div id="dock">
-        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group"><span style="font-size: 9px; color: #777;">MÃ ID:</span><input type="text" id="user-id-input" placeholder="Mã..."></div>
+        <div id="room-btn" onclick="toggleMode()" style="cursor:pointer; font-size:11px; text-align:center;">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
+        <input type="text" id="user-id-input" placeholder="Mã...">
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; background:none; cursor: pointer;">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
@@ -94,10 +56,10 @@
 
     <script>
         function toggleGuide() {
-            const content = document.getElementById('guide-content');
-            const arrow = document.getElementById('guide-arrow');
-            content.style.display = (content.style.display === "none") ? "block" : "none";
-            arrow.innerText = (content.style.display === "none") ? "▼" : "▲";
+            const c = document.getElementById('guide-content');
+            const a = document.getElementById('guide-arrow');
+            c.style.display = (c.style.display === "none") ? "block" : "none";
+            a.innerText = (c.style.display === "none") ? "▼" : "▲";
         }
 
         const firebaseConfig = {
@@ -112,161 +74,98 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
-        document.getElementById('user-id-input').value = currentUserId;
+        let wallLeft = 0, wallTop = 0, scale = 1, isPanning = false, startX, startY, initialDist = null;
+        const wall = document.getElementById('wall'), viewport = document.getElementById('viewport');
 
-        let wallLeft = 0, wallTop = 0, scale = 1;
-        let isPanning = false, startX, startY;
-        let initialDist = null; 
+        function updateWall() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-        const wall = document.getElementById('wall');
-        const viewport = document.getElementById('viewport');
-
-        function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
-
-        const startDrag = (e) => {
+        viewport.addEventListener('touchstart', (e) => {
             if(e.target !== viewport && e.target !== wall) return;
-            if (e.touches && e.touches.length === 2) {
-                isPanning = false; 
+            if (e.touches.length === 2) {
+                isPanning = false;
                 initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
             } else {
                 isPanning = true;
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                startX = cX - wallLeft; startY = cY - wallTop;
+                startX = e.touches[0].clientX - wallLeft; startY = e.touches[0].clientY - wallTop;
             }
-        };
+        });
 
-        const moveDrag = (e) => {
-            if (e.touches && e.touches.length === 2) {
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
                 e.preventDefault();
-                let currentDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                 if (initialDist) {
-                    let zoomFactor = currentDist / initialDist;
-                    scale *= zoomFactor;
-                    scale = Math.min(Math.max(0.2, scale), 3);
-                    updateWallTransform();
-                    initialDist = currentDist;
+                    scale = Math.min(Math.max(0.2, scale * (dist / initialDist)), 3);
+                    updateWall();
+                    initialDist = dist;
                 }
             } else if (isPanning) {
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                wallLeft = cX - startX; wallTop = cY - startY;
-                updateWallTransform();
+                wallLeft = e.touches[0].clientX - startX; wallTop = e.touches[0].clientY - startY;
+                updateWall();
             }
-        };
-
-        viewport.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', moveDrag);
-        window.addEventListener('mouseup', () => isPanning = false);
-        viewport.addEventListener('touchstart', startDrag, {passive: false});
-        window.addEventListener('touchmove', moveDrag, {passive: false});
-        window.addEventListener('touchend', () => { isPanning = false; initialDist = null; });
-
-        window.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.2, scale), 3);
-            updateWallTransform();
         }, {passive: false});
 
+        window.addEventListener('touchend', () => { isPanning = false; initialDist = null; });
+
         function toggleMode() {
-            const status = document.getElementById('room-status');
-            const isToPrivate = (status.innerText === 'CÔNG CỘNG');
-            status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
+            const s = document.getElementById('room-status');
+            s.innerText = (s.innerText === 'CÔNG CỘNG') ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            s.style.color = (s.innerText === 'CÁ NHÂN') ? '#ff00ff' : '#00ff00';
             loadNotes();
         }
 
         function loadNotes() {
-            const statusText = document.getElementById('room-status').innerText;
-            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            localStorage.setItem('note_user_id', typedId);
-            db.ref('notes').off();
-            db.ref(`notes/private`).off();
-            wall.innerHTML = "";
-            const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            db.ref(path).on('value', (snapshot) => {
+            const s = document.getElementById('room-status').innerText;
+            const id = document.getElementById('user-id-input').value.trim() || 'default';
+            const path = (s === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
+            db.ref('notes').off(); db.ref(`notes/private`).off();
+            db.ref(path).on('value', (snap) => {
                 wall.innerHTML = "";
-                const data = snapshot.val();
-                if(data) {
-                    Object.keys(data).forEach(id => {
-                        if(data[id]) renderNote(id, data[id], path);
-                    });
-                }
+                const data = snap.val();
+                if(data) Object.keys(data).forEach(k => renderNote(k, data[k], path));
             });
         }
 
-        function renderNote(id, item, currentPath) {
-            const note = document.createElement('div');
-            note.className = 'sticky-note';
-            note.contentEditable = "true";
-            note.innerText = item.text;
-            note.style.left = item.x;
-            note.style.top = item.y;
-            note.style.backgroundColor = item.color || '#fff';
-            note.setAttribute('data-path', `${currentPath}/${id}`);
-
-            note.addEventListener('touchstart', (e) => e.stopPropagation());
-            note.addEventListener('mousedown', (e) => e.stopPropagation());
-
-            const deleteMe = () => {
-                if(confirm("Xóa vĩnh viễn nhé?")) {
-                    const fullPath = note.getAttribute('data-path');
-                    db.ref(fullPath).remove().then(() => { note.remove(); });
-                }
-            };
-
+        function renderNote(id, item, path) {
+            const n = document.createElement('div');
+            n.className = 'sticky-note'; n.innerText = item.text;
+            n.style.left = item.x; n.style.top = item.y; n.style.backgroundColor = item.color || '#fff';
             let lastTap = 0;
-            note.addEventListener('touchend', (e) => {
-                const now = new Date().getTime();
-                if (now - lastTap < 300 && now - lastTap > 0) { deleteMe(); e.preventDefault(); }
+            n.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 300) { if(confirm("Xóa nhé?")) db.ref(`${path}/${id}`).remove(); }
                 lastTap = now;
             });
-            note.ondblclick = deleteMe;
-
-            note.onblur = () => {
-                const fullPath = note.getAttribute('data-path');
-                if(note.innerText.trim() !== "") db.ref(fullPath).update({ text: note.innerText });
-            };
-
-            makeDraggable(note);
-            wall.appendChild(note);
+            makeDraggable(n, path, id);
+            wall.appendChild(n);
         }
 
-        function makeDraggable(el) {
+        function makeDraggable(el, path, id) {
             let oX, oY;
-            const start = (e) => {
-                if(document.activeElement === el || (e.touches && e.touches.length > 1)) return;
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
+            el.addEventListener('touchstart', (e) => {
+                if(e.touches.length > 1) return;
+                e.stopPropagation();
+                oX = e.touches[0].clientX - el.offsetLeft; oY = e.touches[0].clientY - el.offsetTop;
                 const move = (ev) => {
-                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                    el.style.left = (mX - oX) + 'px';
-                    el.style.top = (mY - oY) + 'px';
+                    el.style.left = (ev.touches[0].clientX - oX) + 'px';
+                    el.style.top = (ev.touches[0].clientY - oY) + 'px';
                 };
                 const stop = () => {
-                    const fullPath = el.getAttribute('data-path');
-                    db.ref(fullPath).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
+                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
                 };
-                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
-                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
-            };
-            el.addEventListener('mousedown', start);
-            el.addEventListener('touchstart', start);
+                window.addEventListener('touchmove', move, {passive: false});
+                window.addEventListener('touchend', stop);
+            });
         }
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            const statusText = document.getElementById('room-status').innerText;
-            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            const finalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            db.ref(finalPath).push({
+            const s = document.getElementById('room-status').innerText;
+            const id = document.getElementById('user-id-input').value.trim() || 'default';
+            const path = (s === 'CÁ NHÂN') ? `notes/private/${id}` : 'notes';
+            db.ref(path).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + 100) / scale + 'px',
                 y: (Math.abs(wallTop) + 100) / scale + 'px',
