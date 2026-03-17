@@ -51,7 +51,7 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE 34 🧶</h3>
+        <h3>UPDATE 35 🧶</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
     
@@ -61,7 +61,7 @@
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
         <div class="input-group"><span style="font-size: 9px; color: #777;">MÃ ID:</span><input type="text" id="user-id-input" placeholder="Mã..."></div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none;">
+        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; cursor: pointer;">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
@@ -123,16 +123,18 @@
             loadNotes();
         }
 
+        let lastPath = "";
+
         function loadNotes() {
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
-            
-            db.ref('notes').off();
-            db.ref(`notes/private`).off();
-            wall.innerHTML = "";
 
+            
+            if (lastPath) db.ref(lastPath).off();
+            
             const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
+            lastPath = path;
 
             db.ref(path).on('value', (snapshot) => {
                 wall.innerHTML = "";
@@ -153,7 +155,6 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            
             note.setAttribute('data-path', `${currentPath}/${id}`);
 
             note.addEventListener('touchstart', (e) => e.stopPropagation());
@@ -163,7 +164,7 @@
                 if(confirm("Xóa vĩnh viễn khỏi server nhé?")) {
                     const fullPath = note.getAttribute('data-path');
                     db.ref(fullPath).remove().then(() => {
-                        note.remove();
+                        note.remove(); 
                     });
                 }
             };
