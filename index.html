@@ -51,7 +51,7 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 36 🧶</h3>
+        <h3>UPDATE.37 👽</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
     
@@ -87,6 +87,7 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
+        
         const startDrag = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
@@ -124,15 +125,11 @@
         }
 
         let lastPath = "";
-
         function loadNotes() {
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
-
-            
             if (lastPath) db.ref(lastPath).off();
-            
             const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
             lastPath = path;
 
@@ -155,38 +152,45 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            note.setAttribute('data-path', `${currentPath}/${id}`);
-
-            note.addEventListener('touchstart', (e) => e.stopPropagation());
-            note.addEventListener('mousedown', (e) => e.stopPropagation());
+            
+            let isDeleting = false; 
 
             const deleteMe = () => {
-                if(confirm("Xóa nhé?")) {
-                    const fullPath = note.getAttribute('data-path');
-                    db.ref(fullPath).remove().then(() => {
+                if(confirm("xác nhận xoá ?")) {
+                    isDeleting = true; 
+                    db.ref(currentPath).off();
+                    db.ref(`${currentPath}/${id}`).remove().then(() => {
                         note.remove(); 
+                        setTimeout(loadNotes, 400);
+                    }).catch(err => {
+                        isDeleting = false;
+                        loadNotes(); 
                     });
                 }
             };
 
+            note.ondblclick = (e) => { e.stopPropagation(); deleteMe(); };
+            
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
                 const now = new Date().getTime();
-                if (now - lastTap < 300 && now - lastTap > 0) { deleteMe(); e.preventDefault(); }
+                if (now - lastTap < 300 && now - lastTap > 0) { 
+                    e.preventDefault(); deleteMe(); 
+                }
                 lastTap = now;
             });
-            note.ondblclick = deleteMe;
 
             note.onblur = () => {
-                const fullPath = note.getAttribute('data-path');
-                if(note.innerText.trim() !== "") db.ref(fullPath).update({ text: note.innerText });
+                if(!isDeleting && note.innerText.trim() !== "") {
+                    db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
+                }
             };
 
-            makeDraggable(note);
+            makeDraggable(note, id, currentPath);
             wall.appendChild(note);
         }
 
-        function makeDraggable(el) {
+        function makeDraggable(el, id, path) {
             let oX, oY;
             const start = (e) => {
                 if(document.activeElement === el) return;
@@ -200,8 +204,7 @@
                     el.style.top = (mY - oY) + 'px';
                 };
                 const stop = () => {
-                    const fullPath = el.getAttribute('data-path');
-                    db.ref(fullPath).update({ x: el.style.left, y: el.style.top });
+                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
                     window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
                 };
@@ -215,11 +218,7 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            const statusText = document.getElementById('room-status').innerText;
-            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            const finalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            
-            db.ref(finalPath).push({
+            db.ref(lastPath).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + 100) / scale + 'px',
                 y: (Math.abs(wallTop) + 100) / scale + 'px',
