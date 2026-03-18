@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Update 39</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
@@ -51,7 +51,7 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE.37 👽</h3>
+        <h3>UPDATE - 39 🧶</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
     
@@ -59,7 +59,10 @@
     
     <div id="dock">
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group"><span style="font-size: 9px; color: #777;">MÃ ID:</span><input type="text" id="user-id-input" placeholder="Mã..."></div>
+        <div class="input-group">
+            <span style="font-size: 9px; color: #777;">MÃ ID:</span>
+            <input type="text" id="user-id-input" placeholder="Mã...">
+        </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
         <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; cursor: pointer;">
         <button id="add-btn" onclick="sendToCloud()">DÁN</button>
@@ -87,7 +90,7 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-        
+        // --- HÀM KÉO NỀN ---
         const startDrag = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
@@ -116,6 +119,9 @@
             updateWallTransform();
         }, {passive: false});
 
+        // --- HỆ THỐNG PHÒNG (FIX LỖI ĐỘNG TRỜI) ---
+        let globalPath = "notes"; // Biến chốt chặn để dán đúng chỗ
+
         function toggleMode() {
             const status = document.getElementById('room-status');
             const isToPrivate = (status.innerText === 'CÔNG CỘNG');
@@ -124,21 +130,30 @@
             loadNotes();
         }
 
-        let lastPath = "";
         function loadNotes() {
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
-            if (lastPath) db.ref(lastPath).off();
-            const path = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            lastPath = path;
 
-            db.ref(path).on('value', (snapshot) => {
+            // Tắt kết nối cũ để tránh load chồng dữ liệu
+            if (globalPath) db.ref(globalPath).off();
+
+            // QUAN TRỌNG: Phân tách rõ ràng path
+            if (statusText === 'CÔNG CỘNG') {
+                globalPath = 'notes';
+            } else {
+                globalPath = `notes/private/${typedId}`;
+            }
+
+            db.ref(globalPath).on('value', (snapshot) => {
                 wall.innerHTML = "";
                 const data = snapshot.val();
                 if(data) {
                     Object.keys(data).forEach(id => {
-                        if(data[id]) renderNote(id, data[id], path);
+                        // Chỉ render nếu là note thực sự (có field text)
+                        if(data[id] && data[id].text) {
+                            renderNote(id, data[id], globalPath);
+                        }
                     });
                 }
             });
@@ -152,25 +167,16 @@
             note.style.left = item.x;
             note.style.top = item.y;
             note.style.backgroundColor = item.color || '#fff';
-            
             let isDeleting = false; 
 
             const deleteMe = () => {
-                if(confirm("xác nhận xoá ?")) {
-                    isDeleting = true; 
-                    db.ref(currentPath).off();
-                    db.ref(`${currentPath}/${id}`).remove().then(() => {
-                        note.remove(); 
-                        setTimeout(loadNotes, 400);
-                    }).catch(err => {
-                        isDeleting = false;
-                        loadNotes(); 
-                    });
+                if(confirm("Xóa nhé Lâm?")) {
+                    isDeleting = true;
+                    db.ref(`${currentPath}/${id}`).remove().then(() => note.remove());
                 }
             };
 
-            note.ondblclick = (e) => { e.stopPropagation(); deleteMe(); };
-            
+            note.ondblclick = deleteMe;
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
                 const now = new Date().getTime();
@@ -217,14 +223,18 @@
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-            db.ref(lastPath).push({
-                text: input.value,
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Dùng globalPath để dán đúng phòng đang đứng
+            db.ref(globalPath).push({
+                text: text,
                 x: (Math.abs(wallLeft) + 100) / scale + 'px',
                 y: (Math.abs(wallTop) + 100) / scale + 'px',
                 color: document.getElementById('color-picker').value
+            }).then(() => {
+                input.value = ""; 
             });
-            input.value = "";
         }
         loadNotes();
     </script>
