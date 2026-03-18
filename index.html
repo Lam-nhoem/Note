@@ -161,7 +161,7 @@
             note.addEventListener('mousedown', (e) => e.stopPropagation());
 
             const deleteMe = () => {
-                if(confirm("Xóa vĩnh viễn khỏi server nhé?")) {
+                if(confirm("Xóa nhé?")) {
                     const fullPath = note.getAttribute('data-path');
                     db.ref(fullPath).remove().then(() => {
                         note.remove(); 
