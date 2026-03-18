@@ -8,50 +8,32 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        body { 
-            background-color: #000; margin: 0; padding: 0;
-            font-family: sans-serif; overflow: hidden; color: white; 
-            touch-action: none; 
-        }
-        #guide-box {
-            position: fixed; top: 20px; left: 20px;
-            width: fit-content; background: rgba(30, 30, 30, 0.9);
-            border: 1px solid #444; border-radius: 10px;
-            padding: 12px 18px; z-index: 2000; font-size: 13px;
-        }
+        body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
+        #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
         #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
-        #guide-box p { margin: 0; color: #bbb; }
         .admin-link { color: #00ff00; text-decoration: none; font-weight: bold; }
         #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
-        #wall { 
-            position: absolute; width: 10000px; height: 10000px; 
-            top: 0; left: 0; 
-            background-image: radial-gradient(#333 1px, transparent 1px);
-            background-size: 50px 50px; 
-            transform-origin: 0 0;
-        }
-        .sticky-note {
-            width: 170px; min-height: 100px; padding: 12px;
-            position: absolute; color: #000; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            font-size: 14px; cursor: move; outline: none; word-wrap: break-word;
-            z-index: 100; touch-action: none;
-        }
-        #dock {
-            position: fixed; bottom: 0; width: 100%; height: 110px;
-            background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000;
-        }
+        #wall { position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; transform-origin: 0 0; }
+        
+     
+        .sticky-note { width: 180px; min-height: 80px; padding: 10px; position: absolute; color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 14px; cursor: move; outline: none; word-wrap: break-word; z-index: 100; touch-action: none; display: flex; flex-direction: column; }
+        .sticky-note img { width: 100%; border-radius: 5px; margin-top: 8px; pointer-events: none; display: block; }
+
+      
+        #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000; }
         .input-group { display: flex; flex-direction: column; gap: 4px; }
         #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
         #note-input { width: 120px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
-        #add-btn { background: #fff; color: #000; border: none; padding: 0 15px; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
-        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 12px; }
+        
+        .btn { border: none; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
+        #add-btn { background: #fff; color: #000; padding: 0 15px; }
+        #img-btn { background: #333; color: #fff; padding: 0 12px; font-size: 20px; border: 1px solid #555; }
+        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
     </style>
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 39 🧶</h3>
+        <h3>UPDATE - 40 👽</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
     
@@ -64,8 +46,12 @@
             <input type="text" id="user-id-input" placeholder="Mã...">
         </div>
         <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
+        
+        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
+        <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
+        
         <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; cursor: pointer;">
-        <button id="add-btn" onclick="sendToCloud()">DÁN</button>
+        <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
@@ -90,6 +76,7 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
+       
         const startDrag = (e) => {
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
@@ -118,7 +105,7 @@
             updateWallTransform();
         }, {passive: false});
 
-        // --- HỆ THỐNG PHÒNG ---
+       
         let globalPath = "notes"; 
 
         function toggleMode() {
@@ -133,61 +120,58 @@
             const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
-
             if (globalPath) db.ref(globalPath).off();
-
-            if (statusText === 'CÔNG CỘNG') {
-                globalPath = 'notes';
-            } else {
-                globalPath = `notes/private/${typedId}`;
-            }
+            globalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
 
             db.ref(globalPath).on('value', (snapshot) => {
                 wall.innerHTML = "";
                 const data = snapshot.val();
                 if(data) {
                     Object.keys(data).forEach(id => {
-                        // FIX: Bỏ lọc khắt khe, cứ có data là hiện
-                        if(data[id] && typeof data[id] === 'object') {
-                            renderNote(id, data[id], globalPath);
-                        }
+                        if (statusText === 'CÔNG CỘNG' && id === 'private') return;
+                        renderNote(id, data[id], globalPath);
                     });
                 }
             });
         }
 
         function renderNote(id, item, currentPath) {
-            // Tránh render nhầm thư mục private thành note
-            if (id === 'private') return; 
-
             const note = document.createElement('div');
             note.className = 'sticky-note';
             note.contentEditable = "true";
-            note.innerText = item.text || "";
             note.style.left = item.x || "100px";
             note.style.top = item.y || "100px";
             note.style.backgroundColor = item.color || '#fff';
-            let isDeleting = false; 
+            
+            
+            const textDiv = document.createElement('div');
+            textDiv.innerText = item.text || "";
+            note.appendChild(textDiv);
+            
+            
+            if (item.image) {
+                const img = document.createElement('img');
+                img.src = item.image;
+                note.appendChild(img);
+            }
 
+            let isDeleting = false;
             const deleteMe = () => {
                 if(confirm("Xóa nhé Lâm?")) {
                     isDeleting = true;
                     db.ref(`${currentPath}/${id}`).remove().then(() => note.remove());
                 }
             };
-
             note.ondblclick = deleteMe;
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
-                const now = new Date().getTime();
-                if (now - lastTap < 300 && now - lastTap > 0) { 
-                    e.preventDefault(); deleteMe(); 
-                }
+                const now = Date.now();
+                if (now - lastTap < 300) { e.preventDefault(); deleteMe(); }
                 lastTap = now;
             });
 
             note.onblur = () => {
-                if(!isDeleting && note.innerText.trim() !== "") {
+                if(!isDeleting) {
                     db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
                 }
             };
@@ -221,19 +205,49 @@
             el.addEventListener('touchstart', start);
         }
 
+      
+        function uploadImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxW = 400; // Độ rộng ảnh tối ưu
+                    const scaleFactor = maxW / img.width;
+                    canvas.width = maxW;
+                    canvas.height = img.height * scaleFactor;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    db.ref(globalPath).push({
+                        text: "Hình ảnh",
+                        image: compressedBase64,
+                        x: (Math.abs(wallLeft) + 200) / scale + 'px',
+                        y: (Math.abs(wallTop) + 200) / scale + 'px',
+                        color: document.getElementById('color-picker').value
+                    });
+                    input.value = ""; 
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
         function sendToCloud() {
             const input = document.getElementById('note-input');
             const text = input.value.trim();
             if (!text) return;
-            
             db.ref(globalPath).push({
                 text: text,
-                x: (Math.abs(wallLeft) + 100) / scale + 'px',
-                y: (Math.abs(wallTop) + 100) / scale + 'px',
+                x: (Math.abs(wallLeft) + 150) / scale + 'px',
+                y: (Math.abs(wallTop) + 150) / scale + 'px',
                 color: document.getElementById('color-picker').value
-            }).then(() => {
-                input.value = ""; 
-            });
+            }).then(() => { input.value = ""; });
         }
         loadNotes();
     </script>
