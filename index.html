@@ -93,7 +93,7 @@
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
 
-       
+        
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
             scale -= e.deltaY * 0.001;
@@ -101,7 +101,7 @@
             updateWallTransform();
         }, {passive: false});
 
-     
+        
         let globalPath = "notes"; 
         function toggleMode() {
             const status = document.getElementById('room-status');
