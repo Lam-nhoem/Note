@@ -2,59 +2,53 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Free Note - made by bad guy</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <style>
         body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
         #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
         #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
-        .admin-link { color: #00ff00; text-decoration: none; font-weight: bold; }
-        #viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
+        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; background: #000; }
         #wall { position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; transform-origin: 0 0; }
         
-     
-        .sticky-note { width: 180px; min-height: 80px; padding: 10px; position: absolute; color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 14px; cursor: move; outline: none; word-wrap: break-word; z-index: 100; touch-action: none; display: flex; flex-direction: column; }
+        .sticky-note { width: 180px; min-height: 80px; padding: 10px; position: absolute; color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 14px; cursor: move; outline: none; word-wrap: break-word; z-index: 100; touch-action: none; }
         .sticky-note img { width: 100%; border-radius: 5px; margin-top: 8px; pointer-events: none; display: block; }
 
-      
-        #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1000; }
-        .input-group { display: flex; flex-direction: column; gap: 4px; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 70px; text-align: center; font-size: 12px; }
-        #note-input { width: 120px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
-        
+        #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 8px; z-index: 1000; padding: 0 5px; box-sizing: border-box; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 5px; border-radius: 5px; width: 60px; text-align: center; font-size: 11px; }
+        #note-input { width: 100px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
         .btn { border: none; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
-        #add-btn { background: #fff; color: #000; padding: 0 15px; }
-        #img-btn { background: #333; color: #fff; padding: 0 12px; font-size: 20px; border: 1px solid #555; }
-        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
+        #add-btn { background: #fff; color: #000; padding: 0 12px; }
+        #img-btn { background: #333; color: #fff; padding: 0 10px; font-size: 18px; border: 1px solid #555; }
+        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 10px; }
     </style>
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 40 👽</h3>
-        <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
+        <h3>UPDATE - 41 🧶</h3>
+        <p>developed by Tung Lam</p>
     </div>
     
     <div id="viewport"><div id="wall"></div></div>
     
     <div id="dock">
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group">
-            <span style="font-size: 9px; color: #777;">MÃ ID:</span>
-            <input type="text" id="user-id-input" placeholder="Mã...">
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <input type="text" id="user-id-input" placeholder="ID...">
         </div>
-        <textarea id="note-input" placeholder="Viết gì đó..."></textarea>
-        
+        <textarea id="note-input" placeholder="Note..."></textarea>
         <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
         <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
-        
-        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; cursor: pointer;">
+        <input type="color" id="color-picker" value="#ffffff" style="width: 30px; height: 30px; border:none;">
         <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
+        // --- FIREBASE CONFIG (GIỮ NGUYÊN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -70,44 +64,49 @@
         let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = currentUserId;
 
-        let wallLeft = 0, wallTop = 0, scale = 1, isPanning = false, startX, startY;
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
+        let wallLeft = 0, wallTop = 0, scale = 1;
 
-        function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
+        function updateWallTransform() { 
+            wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; 
+        }
 
-       
-        const startDrag = (e) => {
-            if(e.target !== viewport && e.target !== wall) return;
-            isPanning = true;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = cX - wallLeft; startY = cY - wallTop;
-        };
-        const moveDrag = (e) => {
-            if (!isPanning) return;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            wallLeft = cX - startX; wallTop = cY - startY;
+        // --- XỬ LÝ ZOOM & PAN CHO MOBILE (DÙNG HAMMER.JS) ---
+        const mc = new Hammer.Manager(viewport);
+        const pan = new Hammer.Pan();
+        const pinch = new Hammer.Pinch();
+        mc.add([pan, pinch]);
+
+        let lastX = 0, lastY = 0, lastScale = 1;
+
+        // Kéo nền (Pan)
+        mc.on("panstart", () => { lastX = wallLeft; lastY = wallTop; });
+        mc.on("panmove", (e) => {
+            if (e.target === viewport || e.target === wall) {
+                wallLeft = lastX + e.deltaX;
+                wallTop = lastY + e.deltaY;
+                updateWallTransform();
+            }
+        });
+
+        // Thu phóng (Pinch)
+        mc.on("pinchstart", () => { lastScale = scale; });
+        mc.on("pinchmove", (e) => {
+            scale = Math.min(Math.max(0.1, lastScale * e.scale), 4);
             updateWallTransform();
-        };
-        viewport.addEventListener('mousedown', startDrag);
-        window.addEventListener('mousemove', moveDrag);
-        window.addEventListener('mouseup', () => isPanning = false);
-        viewport.addEventListener('touchstart', startDrag);
-        window.addEventListener('touchmove', moveDrag, {passive: false});
-        window.addEventListener('touchend', () => isPanning = false);
+        });
 
+        // Cuộn chuột cho PC
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
             scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.2, scale), 3);
+            scale = Math.min(Math.max(0.1, scale), 4);
             updateWallTransform();
         }, {passive: false});
 
-       
+        // --- LOGIC PHÒNG & NOTE (GIỮ NGUYÊN TỪ BẢN TRƯỚC) ---
         let globalPath = "notes"; 
-
         function toggleMode() {
             const status = document.getElementById('room-status');
             const isToPrivate = (status.innerText === 'CÔNG CỘNG');
@@ -117,19 +116,16 @@
         }
 
         function loadNotes() {
-            const statusText = document.getElementById('room-status').innerText;
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
             if (globalPath) db.ref(globalPath).off();
-            globalPath = (statusText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-
+            globalPath = (document.getElementById('room-status').innerText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
             db.ref(globalPath).on('value', (snapshot) => {
                 wall.innerHTML = "";
                 const data = snapshot.val();
                 if(data) {
                     Object.keys(data).forEach(id => {
-                        if (statusText === 'CÔNG CỘNG' && id === 'private') return;
-                        renderNote(id, data[id], globalPath);
+                        if (id !== 'private') renderNote(id, data[id], globalPath);
                     });
                 }
             });
@@ -142,26 +138,16 @@
             note.style.left = item.x || "100px";
             note.style.top = item.y || "100px";
             note.style.backgroundColor = item.color || '#fff';
-            
-            
-            const textDiv = document.createElement('div');
-            textDiv.innerText = item.text || "";
-            note.appendChild(textDiv);
-            
-            
+            note.innerText = item.text || "";
             if (item.image) {
                 const img = document.createElement('img');
                 img.src = item.image;
                 note.appendChild(img);
             }
-
+            
+            // Xóa note (DblClick/Tap)
             let isDeleting = false;
-            const deleteMe = () => {
-                if(confirm("Xóa nhé Lâm?")) {
-                    isDeleting = true;
-                    db.ref(`${currentPath}/${id}`).remove().then(() => note.remove());
-                }
-            };
+            const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.ondblclick = deleteMe;
             let lastTap = 0;
             note.addEventListener('touchend', (e) => {
@@ -170,69 +156,43 @@
                 lastTap = now;
             });
 
-            note.onblur = () => {
-                if(!isDeleting) {
-                    db.ref(`${currentPath}/${id}`).update({ text: note.innerText });
-                }
-            };
-
+            note.onblur = () => { if(!isDeleting) db.ref(`${currentPath}/${id}`).update({ text: note.innerText }); };
             makeDraggable(note, id, currentPath);
             wall.appendChild(note);
         }
 
         function makeDraggable(el, id, path) {
-            let oX, oY;
-            const start = (e) => {
-                if(document.activeElement === el) return;
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
-                const move = (ev) => {
-                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                    el.style.left = (mX - oX) + 'px';
-                    el.style.top = (mY - oY) + 'px';
-                };
-                const stop = () => {
-                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
-                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
-                };
-                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
-                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
-            };
-            el.addEventListener('mousedown', start);
-            el.addEventListener('touchstart', start);
+            let hammerNote = new Hammer(el);
+            hammerNote.on("pan", (e) => {
+                el.style.left = (parseFloat(el.style.left) + e.velocity.x * 10) + 'px';
+                el.style.top = (parseFloat(el.style.top) + e.velocity.y * 10) + 'px';
+            });
+            hammerNote.on("panend", () => {
+                db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+            });
         }
 
-      
         function uploadImage(input) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxW = 400; // Độ rộng ảnh tối ưu
-                    const scaleFactor = maxW / img.width;
+                    const maxW = 400;
                     canvas.width = maxW;
-                    canvas.height = img.height * scaleFactor;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
+                    canvas.height = img.height * (maxW / img.width);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     db.ref(globalPath).push({
                         text: "Hình ảnh",
-                        image: compressedBase64,
+                        image: canvas.toDataURL('image/jpeg', 0.6),
                         x: (Math.abs(wallLeft) + 200) / scale + 'px',
                         y: (Math.abs(wallTop) + 200) / scale + 'px',
                         color: document.getElementById('color-picker').value
                     });
-                    input.value = ""; 
+                    input.value = "";
                 };
             };
             reader.readAsDataURL(file);
@@ -240,10 +200,9 @@
 
         function sendToCloud() {
             const input = document.getElementById('note-input');
-            const text = input.value.trim();
-            if (!text) return;
+            if (!input.value.trim()) return;
             db.ref(globalPath).push({
-                text: text,
+                text: input.value,
                 x: (Math.abs(wallLeft) + 150) / scale + 'px',
                 y: (Math.abs(wallTop) + 150) / scale + 'px',
                 color: document.getElementById('color-picker').value
