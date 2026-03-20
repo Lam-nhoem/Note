@@ -30,7 +30,6 @@
         #viewport:active { cursor: grabbing; }
         #wall { position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; transform-origin: 0 0; }
         
-      
         .sticky-note { 
             width: 180px; min-height: 80px; padding: 10px; position: absolute; 
             color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
@@ -41,12 +40,11 @@
             flex-direction: column;
         }
         
-        
         .sticky-note img { 
             width: 100%; 
-            height: auto;
+            height: auto; 
             flex-shrink: 1;
-            object-fit: contain;
+            object-fit: contain; 
             border-radius: 5px; 
             margin-top: 8px; 
             pointer-events: none; 
@@ -63,7 +61,7 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 45 🧶</h3>
+        <h3>UPDATE - 46 👽</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
     
@@ -103,26 +101,52 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
+        
+        let initialDistance = null;
+        let initialScale = 1;
+        const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+
         const handleStart = (e) => {
+            if(e.touches && e.touches.length === 2) {
+                isPanning = false;
+                initialDistance = getDistance(e.touches);
+                initialScale = scale;
+                return;
+            }
+            
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             startX = cX - wallLeft; startY = cY - wallTop;
         };
+
         const handleMove = (e) => {
+            if (e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = getDistance(e.touches);
+                if (initialDistance) {
+                    const delta = currentDistance / initialDistance;
+                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
+                    updateWallTransform();
+                }
+                return;
+            }
+            
             if (!isPanning) return;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             wallLeft = cX - startX; wallTop = cY - startY;
             updateWallTransform();
         };
-        const handleEnd = () => { isPanning = false; };
 
+        const handleEnd = () => { isPanning = false; initialDistance = null; };
+
+        // Gán sự kiện (Giữ nguyên cấu trúc gán sự kiện cũ)
         viewport.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
-        viewport.addEventListener('touchstart', handleStart);
+        viewport.addEventListener('touchstart', handleStart, {passive: false});
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
 
@@ -133,6 +157,7 @@
             updateWallTransform();
         }, {passive: false});
 
+     
         let globalPath = "notes"; 
         function toggleMode() {
             const status = document.getElementById('room-status');
@@ -177,13 +202,6 @@
             let isDeleting = false;
             const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.ondblclick = deleteMe;
-            let lastTap = 0;
-            note.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTap < 300) { e.preventDefault(); deleteMe(); }
-                lastTap = now;
-            });
-
             
             note.onblur = () => { 
                 if(!isDeleting) {
