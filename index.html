@@ -314,7 +314,7 @@
             }).then(() => { input.value = ""; });
         }
 
-        // --- LOGIC ĐỒNG HỒ HỌC TẬP (MỚI) ---
+       
         let timerSeconds = 0;
         let timerInterval = null;
 
@@ -326,7 +326,7 @@
         }
 
         function startTimer() {
-            if (timerInterval) return; // Tránh chạy lặp
+            if (timerInterval) return; 
             timerInterval = setInterval(() => {
                 timerSeconds++;
                 updateTimerUI();
@@ -338,7 +338,7 @@
             clearInterval(timerInterval);
             timerInterval = null;
             
-            // Hiển thị thông báo chúc mừng
+            
             const h = Math.floor(timerSeconds / 3600);
             const m = Math.floor((timerSeconds % 3600) / 60);
             const s = timerSeconds % 60;
