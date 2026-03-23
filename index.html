@@ -34,86 +34,62 @@
             width: 180px; min-height: 80px; padding: 10px; position: absolute; 
             color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
             font-size: 14px; outline: none; word-wrap: break-word; z-index: 100; 
-            overflow: hidden; 
-            resize: both; 
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; resize: both; display: flex; flex-direction: column;
         }
         
-        .sticky-note img { 
-            width: 100%; 
-            height: auto; 
-            flex-shrink: 1;
-            object-fit: contain; 
-            border-radius: 5px; 
-            margin-top: 8px; 
-            pointer-events: none; 
-        }
+        .sticky-note img { width: 100%; height: auto; flex-shrink: 1; object-fit: contain; border-radius: 5px; margin-top: 8px; pointer-events: none; }
+
+        .chart-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; pointer-events: none; }
+        .chart-svg { width: 95%; height: 95%; transform: rotate(-90deg); border: 2px solid #000; border-radius: 50%; background: #fff; }
+        .clock-tick { position: absolute; background: #000; z-index: 10; }
+        .tick-v { width: 3px; height: 12px; left: 50%; transform: translateX(-50%); }
+        .tick-h { width: 12px; height: 3px; top: 50%; transform: translateY(-50%); }
 
         #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 8px; z-index: 1000; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 65px; text-align: center; font-size: 12px; }
+        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 60px; text-align: center; font-size: 12px; }
         #note-input { width: 110px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
         .btn { border: none; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
         #add-btn { background: #fff; color: #000; padding: 0 15px; }
-        #img-btn { background: #333; color: #fff; padding: 0 10px; font-size: 20px; border: 1px solid #555; }
+        #img-btn { background: #333; color: #fff; padding: 0 10px; font-size: 20px; }
+        #chart-btn { background: #222; color: #00d4ff; padding: 0 10px; font-size: 20px; border: 1px solid #444; }
         #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
 
         
-        #timer-container { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 100px; border-right: 1px solid #333; padding-right: 10px; }
-        #timer-display { font-family: monospace; font-size: 18px; color: #00ff00; font-weight: bold; }
-        .timer-controls { display: flex; gap: 4px; }
-        .timer-btn { background: #222; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
-        .timer-btn:active { background: #444; }
-        
-        #study-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px;
-            border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000;
-            display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-        }
+        #timer-container { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 90px; border-right: 1px solid #333; padding-right: 8px; }
+        #timer-display { font-family: monospace; font-size: 15px; color: #00ff00; font-weight: bold; }
+        .timer-btn { background: #333; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+        #study-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px; border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000; display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); }
     </style>
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 47 ⏱️</h3>
+        <h3>UPDATE - 48 👽</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
-
     <div id="study-toast"></div>
-    
     <div id="viewport"><div id="wall"></div></div>
     
     <div id="dock">
         <div id="timer-container">
             <div id="timer-display">00:00:00</div>
-            <div class="timer-controls">
+            <div style="display:flex; gap:3px;">
                 <button class="timer-btn" onclick="startTimer()">BĐ</button>
                 <button class="timer-btn" onclick="stopTimer()">DỪNG</button>
                 <button class="timer-btn" onclick="resetTimer()">RS</button>
             </div>
         </div>
-
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group">
-            <input type="text" id="user-id-input" placeholder="Mã ID">
-        </div>
+        <input type="text" id="user-id-input" placeholder="ID">
         <textarea id="note-input" placeholder="Viết..."></textarea>
-        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
-        <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
         <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none;">
+        <button id="chart-btn" class="btn" onclick="addChartNote()">📊</button>
+        <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
+        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
         <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
-            authDomain: "note-15380.firebaseapp.com",
-            databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", 
-            projectId: "note-15380",
-            storageBucket: "note-15380.firebasestorage.app",
-            messagingSenderId: "834783700925",
-            appId: "1:834783700925:web:63768ddccd55b6c55a94d4"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA", authDomain: "note-15380.firebaseapp.com", databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", projectId: "note-15380", storageBucket: "note-15380.firebasestorage.app", messagingSenderId: "834783700925", appId: "1:834783700925:web:63768ddccd55b6c55a94d4" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -127,73 +103,49 @@
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
         
-        let initialDistance = null;
-        let initialScale = 1;
-        const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-
+        let initialDistance = null, initialScale = 1;
+        const getDistance = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+        
         const handleStart = (e) => {
-            if(e.touches && e.touches.length === 2) {
-                isPanning = false;
-                initialDistance = getDistance(e.touches);
-                initialScale = scale;
-                return;
-            }
-            
+            if(e.touches && e.touches.length === 2) { isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return; }
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             startX = cX - wallLeft; startY = cY - wallTop;
         };
-
         const handleMove = (e) => {
             if (e.touches && e.touches.length === 2) {
                 e.preventDefault();
-                const currentDistance = getDistance(e.touches);
-                if (initialDistance) {
-                    const delta = currentDistance / initialDistance;
-                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
-                    updateWallTransform();
-                }
+                const dist = getDistance(e.touches);
+                if (initialDistance) { scale = Math.min(Math.max(0.1, initialScale * (dist / initialDistance)), 4); updateWallTransform(); }
                 return;
             }
-            
             if (!isPanning) return;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             wallLeft = cX - startX; wallTop = cY - startY;
             updateWallTransform();
         };
-
         const handleEnd = () => { isPanning = false; initialDistance = null; };
 
-        // Gán sự kiện (Giữ nguyên cấu trúc gán sự kiện cũ)
         viewport.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
         viewport.addEventListener('touchstart', handleStart, {passive: false});
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
+        window.addEventListener('wheel', (e) => { e.preventDefault(); scale = Math.min(Math.max(0.1, scale - e.deltaY * 0.001), 4); updateWallTransform(); }, {passive: false});
 
-        window.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.1, scale), 4);
-            updateWallTransform();
-        }, {passive: false});
-
-     
+        
         let globalPath = "notes"; 
         function toggleMode() {
             const status = document.getElementById('room-status');
-            const timerUI = document.getElementById('timer-container'); 
+            const timerUI = document.getElementById('timer-container');
             const isToPrivate = (status.innerText === 'CÔNG CỘNG');
             status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
-            
-            
             timerUI.style.display = isToPrivate ? 'none' : 'flex';
-            
             loadNotes();
         }
 
@@ -205,46 +157,78 @@
             db.ref(globalPath).on('value', (snapshot) => {
                 wall.innerHTML = "";
                 const data = snapshot.val();
-                if(data) {
-                    Object.keys(data).forEach(id => {
-                        if (id !== 'private') renderNote(id, data[id], globalPath);
-                    });
-                }
+                if(data) Object.keys(data).forEach(id => { if (id !== 'private') renderNote(id, data[id], globalPath); });
             });
         }
 
         function renderNote(id, item, currentPath) {
             const note = document.createElement('div');
             note.className = 'sticky-note';
-            note.contentEditable = "true";
             note.style.left = item.x || "100px";
             note.style.top = item.y || "100px";
-            note.style.width = item.w || "180px";
-            note.style.height = item.h || "auto";
+            note.style.width = item.w || "200px";
+            note.style.height = item.h || "200px";
             note.style.backgroundColor = item.color || '#fff';
-            note.innerText = item.text || "";
-            if (item.image) {
-                const img = document.createElement('img');
-                img.src = item.image;
-                note.appendChild(img);
-            }
-            
-            let isDeleting = false;
-            const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
-            note.ondblclick = deleteMe;
-            
-            note.onblur = () => { 
-                if(!isDeleting) {
-                    db.ref(`${currentPath}/${id}`).update({ 
-                        text: note.innerText,
-                        w: note.style.width,
-                        h: note.style.height
-                    }); 
+
+            if (item.type === 'chart') {
+                note.contentEditable = "false";
+                const container = document.createElement('div');
+                container.className = 'chart-container';
+                container.innerHTML = `
+                    <div class="clock-tick tick-v" style="top: 0;"></div>
+                    <div class="clock-tick tick-v" style="bottom: 0;"></div>
+                    <div class="clock-tick tick-h" style="left: 0;"></div>
+                    <div class="clock-tick tick-h" style="right: 0;"></div>
+                    <svg class="chart-svg" viewBox="-1 -1 2 2"></svg>
+                `;
+                note.appendChild(container);
+                drawPie(note.querySelector('.chart-svg'), item.text || "");
+                
+                let lastTap = 0;
+                const openEdit = () => {
+                    const res = prompt("Mỗi dòng là 1 phần biểu đồ:", item.text);
+                    if(res !== null) db.ref(`${currentPath}/${id}`).update({ text: res });
+                };
+                note.addEventListener('touchend', (e) => {
+                    const now = Date.now();
+                    if(now - lastTap < 300) openEdit();
+                    lastTap = now;
+                });
+                note.ondblclick = openEdit;
+            } else {
+                note.contentEditable = "true";
+                note.innerText = item.text || "";
+                if (item.image) {
+                    const img = document.createElement('img');
+                    img.src = item.image;
+                    note.appendChild(img);
                 }
-            };
-            
+                note.onblur = () => { db.ref(`${currentPath}/${id}`).update({ text: note.innerText, w: note.style.width, h: note.style.height }); };
+            }
+
+            note.oncontextmenu = (e) => { e.preventDefault(); if(confirm("Xóa?")) db.ref(`${currentPath}/${id}`).remove(); };
             makeDraggable(note, id, currentPath);
             wall.appendChild(note);
+        }
+
+        function drawPie(svg, text) {
+            const lines = text.split('\n').filter(l => l.trim() !== "");
+            if (lines.length === 0) return;
+            const sliceAngle = 1 / lines.length;
+            let currentAngle = 0;
+            const colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
+            lines.forEach((line, i) => {
+                const x1 = Math.cos(2 * Math.PI * currentAngle), y1 = Math.sin(2 * Math.PI * currentAngle);
+                currentAngle += sliceAngle;
+                const x2 = Math.cos(2 * Math.PI * currentAngle), y2 = Math.sin(2 * Math.PI * currentAngle);
+                const pathData = `M 0 0 L ${x1} ${y1} A 1 1 0 ${sliceAngle > 0.5 ? 1 : 0} 1 ${x2} ${y2} Z`;
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", pathData);
+                path.setAttribute("fill", colors[i % colors.length]);
+                path.setAttribute("stroke", "#000");
+                path.setAttribute("stroke-width", "0.02");
+                svg.appendChild(path);
+            });
         }
 
         function makeDraggable(el, id, path) {
@@ -252,15 +236,11 @@
             const start = (e) => {
                 if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
                 if(document.activeElement === el) return;
-                
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                const cX = e.touches ? e.touches[0].clientX : e.clientX, cY = e.touches ? e.touches[0].clientY : e.clientY;
                 oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
                 const move = (ev) => {
-                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                    el.style.left = (mX - oX) + 'px';
-                    el.style.top = (mY - oY) + 'px';
+                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX, mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+                    el.style.left = (mX - oX) + 'px'; el.style.top = (mY - oY) + 'px';
                 };
                 const stop = () => {
                     db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
@@ -270,32 +250,41 @@
                 window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
                 window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
             };
-            el.addEventListener('mousedown', start);
-            el.addEventListener('touchstart', start);
+            el.addEventListener('mousedown', start); el.addEventListener('touchstart', start);
+        }
+
+      
+        let timerSeconds = 0, timerInterval = null;
+        function updateTimerUI() {
+            const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((timerSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+        }
+        function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
+        function stopTimer() {
+            clearInterval(timerInterval); timerInterval = null;
+            const h = Math.floor(timerSeconds / 3600), m = Math.floor((timerSeconds % 3600) / 60), s = timerSeconds % 60;
+            const toast = document.getElementById('study-toast');
+            toast.innerText = `Chúc mừng! Bạn đã học được ${h}h ${m}p ${s}s 🎉`;
+            toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', 3000);
+        }
+        function resetTimer() { stopTimer(); timerSeconds = 0; updateTimerUI(); }
+
+        function addChartNote() {
+            db.ref(globalPath).push({ type: 'chart', text: "Mục 1\nMục 2", x: (Math.abs(wallLeft) + 200) / scale + 'px', y: (Math.abs(wallTop) + 200) / scale + 'px', w: "200px", h: "200px", color: '#fff' });
         }
 
         function uploadImage(input) {
-            const file = input.files[0];
-            if (!file) return;
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
+                const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const maxW = 400;
-                    canvas.width = maxW;
-                    canvas.height = img.height * (maxW / img.width);
+                    const canvas = document.createElement('canvas'); const maxW = 400;
+                    canvas.width = maxW; canvas.height = img.height * (maxW / img.width);
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    db.ref(globalPath).push({
-                        text: "Hình ảnh",
-                        image: canvas.toDataURL('image/jpeg', 0.6),
-                        x: (Math.abs(wallLeft) + 200) / scale + 'px',
-                        y: (Math.abs(wallTop) + 200) / scale + 'px',
-                        w: "200px",
-                        h: "auto",
-                        color: document.getElementById('color-picker').value
-                    });
+                    db.ref(globalPath).push({ text: "Ảnh", image: canvas.toDataURL('image/jpeg', 0.6), x: (Math.abs(wallLeft)+200)/scale+'px', y: (Math.abs(wallTop)+200)/scale+'px', w: "200px", h: "auto", color: document.getElementById('color-picker').value });
                     input.value = "";
                 };
             };
@@ -303,57 +292,8 @@
         }
 
         function sendToCloud() {
-            const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-            db.ref(globalPath).push({
-                text: input.value,
-                x: (Math.abs(wallLeft) + 150) / scale + 'px',
-                y: (Math.abs(wallTop) + 150) / scale + 'px',
-                w: "180px",
-                h: "auto",
-                color: document.getElementById('color-picker').value
-            }).then(() => { input.value = ""; });
-        }
-
-        
-        let timerSeconds = 0;
-        let timerInterval = null;
-
-        function updateTimerUI() {
-            const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
-            const m = Math.floor((timerSeconds % 3600) / 60).toString().padStart(2, '0');
-            const s = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
-        }
-
-        function startTimer() {
-            if (timerInterval) return; 
-            timerInterval = setInterval(() => {
-                timerSeconds++;
-                updateTimerUI();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (!timerInterval) return;
-            clearInterval(timerInterval);
-            timerInterval = null;
-            
-           
-            const h = Math.floor(timerSeconds / 3600);
-            const m = Math.floor((timerSeconds % 3600) / 60);
-            const s = timerSeconds % 60;
-            const toast = document.getElementById('study-toast');
-            toast.innerText = `Chúc mừng! Bạn đã học được ${h} giờ, ${m} phút và ${s} giây 🎉`;
-            toast.style.display = 'block';
-            
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
-        }
-
-        function resetTimer() {
-            stopTimer();
-            timerSeconds = 0;
-            updateTimerUI();
+            const input = document.getElementById('note-input'); if (!input.value.trim()) return;
+            db.ref(globalPath).push({ text: input.value, x: (Math.abs(wallLeft)+150)/scale+'px', y: (Math.abs(wallTop)+150)/scale+'px', w: "180px", h: "auto", color: document.getElementById('color-picker').value }).then(() => input.value = "");
         }
 
         loadNotes();
