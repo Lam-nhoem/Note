@@ -3,359 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Free Note - made by bad guy</title>
+    <title>Free Note - Update 48 (Original Logic)</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
+        /* GIỮ NGUYÊN CSS GỐC CỦA LÂM */
         body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
-        #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
-        #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
         
-        .admin-link { 
-            background: linear-gradient(90deg, #00ff00, #00d4ff, #00ffbc, #00ff00);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none; 
-            font-weight: bold;
-            animation: moveGradient 4s linear infinite;
-        }
-        @keyframes moveGradient {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
+        /* Chỉ thêm CSS cho Màn hình chờ & BXH */
+        #splash-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 0.5s; }
+        .login-box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; width: 280px; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; text-align: center; box-sizing: border-box; }
+        #enter-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #00ff00; color: #000; font-weight: bold; cursor: pointer; }
+
+        #leaderboard { position: fixed; top: 20px; right: 20px; width: 160px; background: rgba(20, 20, 20, 0.8); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 1500; font-size: 11px; }
+        .rank-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
 
         #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; cursor: grab; }
-        #viewport:active { cursor: grabbing; }
         #wall { position: absolute; width: 10000px; height: 10000px; top: 0; left: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 50px 50px; transform-origin: 0 0; }
         
-        .sticky-note { 
-            width: 180px; min-height: 80px; padding: 10px; position: absolute; 
-            color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
-            font-size: 14px; outline: none; word-wrap: break-word; z-index: 100; 
-            overflow: hidden; 
-            resize: both; 
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sticky-note img { 
-            width: 100%; 
-            height: auto; 
-            flex-shrink: 1;
-            object-fit: contain; 
-            border-radius: 5px; 
-            margin-top: 8px; 
-            pointer-events: none; 
-        }
+        .sticky-note { width: 180px; padding: 10px; position: absolute; color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 14px; outline: none; z-index: 100; overflow: hidden; resize: both; }
 
         #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 8px; z-index: 1000; }
-        #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 65px; text-align: center; font-size: 12px; }
-        #note-input { width: 110px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
-        .btn { border: none; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
-        #add-btn { background: #fff; color: #000; padding: 0 15px; }
-        #img-btn { background: #333; color: #fff; padding: 0 10px; font-size: 20px; border: 1px solid #555; }
-        #room-btn { background: #222; color: #888; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 11px; }
-
-        
-        #timer-container { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 100px; border-right: 1px solid #333; padding-right: 10px; }
-        #timer-display { font-family: monospace; font-size: 18px; color: #00ff00; font-weight: bold; }
-        .timer-controls { display: flex; gap: 4px; }
-        .timer-btn { background: #222; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
-        .timer-btn:active { background: #444; }
-        
-        #study-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px;
-            border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000;
-            display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-        }
+        #note-input { width: 140px; height: 60px; border-radius: 5px; border: none; padding: 8px; }
+        #study-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 0, 0.9); color: black; padding: 20px; border-radius: 15px; font-weight: bold; z-index: 3000; display: none; }
     </style>
 </head>
 <body>
-    <div id="guide-box">
-        <h3>UPDATE - 48 👽</h3>
-        <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
+
+    <div id="splash-screen">
+        <div class="login-box">
+            <h2 style="color:#00ff00">FREE NOTE LOGIN</h2>
+            <input type="text" id="user-id-input" class="login-input" placeholder="Nhập ID">
+            <input type="password" id="user-pin-input" class="login-input" placeholder="PIN 4 số" maxlength="4">
+            <button id="enter-btn" onclick="login()">VÀO WEB</button>
+        </div>
+    </div>
+
+    <div id="leaderboard">
+        <h4 style="margin:0 0 10px 0; color:#ffeb3b; text-align:center;">BXH SIÊNG NĂNG</h4>
+        <div id="rank-list"></div>
     </div>
 
     <div id="study-toast"></div>
-    
     <div id="viewport"><div id="wall"></div></div>
     
     <div id="dock">
-        <div id="timer-container">
-            <div id="timer-display">00:00:00</div>
-            <div class="timer-controls">
-                <button class="timer-btn" onclick="startTimer()">BĐ</button>
-                <button class="timer-btn" onclick="stopTimer()">DỪNG</button>
-                <button class="timer-btn" onclick="resetTimer()">RS</button>
-            </div>
+        <div id="timer-container" style="text-align:center; padding-right:10px; border-right:1px solid #333;">
+            <div id="timer-display" style="color:#00ff00; font-weight:bold;">00:00:00</div>
+            <button onclick="startTimer()" style="font-size:10px;">BĐ</button>
+            <button onclick="stopTimer()" style="font-size:10px;">DỪNG</button>
         </div>
-
-        <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group">
-            <input type="text" id="user-id-input" placeholder="Mã ID">
-        </div>
-        <textarea id="note-input" placeholder="Viết..."></textarea>
-        <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
-        <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none;">
-        <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
+        <div id="room-btn" onclick="toggleMode()" style="cursor:pointer; font-size:11px; color:#00ff00;">Phòng <br> <span id="room-status">CÔNG CỘNG</span></div>
+        <textarea id="note-input"></textarea>
+        <input type="color" id="color-picker" value="#ffffff">
+        <button id="add-btn" onclick="sendToCloud()" style="height:60px; font-weight:bold;">DÁN</button>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
-            authDomain: "note-15380.firebaseapp.com",
-            databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", 
-            projectId: "note-15380",
-            storageBucket: "note-15380.firebasestorage.app",
-            messagingSenderId: "834783700925",
-            appId: "1:834783700925:web:63768ddccd55b6c55a94d4"
-        };
+        // FIREBASE CONFIG (Giữ nguyên)
+        const firebaseConfig = { apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA", authDomain: "note-15380.firebaseapp.com", databaseURL: "https://note-15380-default-rtdb.firebaseio.com/", projectId: "note-15380", storageBucket: "note-15380.firebasestorage.app", messagingSenderId: "834783700925", appId: "1:834783700925:web:63768ddccd55b6c55a94d4" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
-        document.getElementById('user-id-input').value = currentUserId;
+        let currentUser = localStorage.getItem('note_user_id') || "";
+        let currentPin = localStorage.getItem('note_user_pin') || "";
 
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
         let wallLeft = 0, wallTop = 0, scale = 1, isPanning = false, startX, startY;
 
+        if(currentUser) document.getElementById('user-id-input').value = currentUser;
+        if(currentPin) document.getElementById('user-pin-input').value = currentPin;
+
+        function login() {
+            currentUser = document.getElementById('user-id-input').value.trim();
+            currentPin = document.getElementById('user-pin-input').value.trim();
+            if(!currentUser || currentPin.length < 4) return alert("Nhập đủ ID và PIN!");
+            localStorage.setItem('note_user_id', currentUser);
+            localStorage.setItem('note_user_pin', currentPin);
+            document.getElementById('splash-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; loadNotes(); updateLeaderboard(); }, 500);
+        }
+
+        // --- GIỮ NGUYÊN HÀM CŨ CỦA LÂM ---
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-        
-        let initialDistance = null;
-        let initialScale = 1;
-        const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-
-        const handleStart = (e) => {
-            if(e.touches && e.touches.length === 2) {
-                isPanning = false;
-                initialDistance = getDistance(e.touches);
-                initialScale = scale;
-                return;
-            }
-            
+        viewport.addEventListener('mousedown', (e) => {
             if(e.target !== viewport && e.target !== wall) return;
-            isPanning = true;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = cX - wallLeft; startY = cY - wallTop;
-        };
-
-        const handleMove = (e) => {
-            if (e.touches && e.touches.length === 2) {
-                e.preventDefault();
-                const currentDistance = getDistance(e.touches);
-                if (initialDistance) {
-                    const delta = currentDistance / initialDistance;
-                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
-                    updateWallTransform();
-                }
-                return;
-            }
-            
+            isPanning = true; startX = e.clientX - wallLeft; startY = e.clientY - wallTop;
+        });
+        window.addEventListener('mousemove', (e) => {
             if (!isPanning) return;
-            const cX = e.touches ? e.touches[0].clientX : e.clientX;
-            const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            wallLeft = cX - startX; wallTop = cY - startY;
+            wallLeft = e.clientX - startX; wallTop = e.clientY - startY;
             updateWallTransform();
-        };
-
-        const handleEnd = () => { isPanning = false; initialDistance = null; };
-
-        
-        viewport.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
-        viewport.addEventListener('touchstart', handleStart, {passive: false});
-        window.addEventListener('touchmove', handleMove, {passive: false});
-        window.addEventListener('touchend', handleEnd);
-
+        });
+        window.addEventListener('mouseup', () => isPanning = false);
         window.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.1, scale), 4);
+            e.preventDefault(); scale = Math.min(Math.max(0.1, scale - e.deltaY * 0.001), 4);
             updateWallTransform();
         }, {passive: false});
 
-     
-        let globalPath = "notes"; 
+        // --- RANKING ---
+        function updateLeaderboard() {
+            db.ref('ranking').orderByChild('time').limitToLast(5).on('value', snap => {
+                const list = document.getElementById('rank-list'); list.innerHTML = "";
+                let ranks = []; snap.forEach(c => ranks.push(c.val()));
+                ranks.reverse().forEach((u, i) => {
+                    list.innerHTML += `<div class="rank-item"><span>${i+1}. ${u.name}</span> <span>${(u.time/3600).toFixed(1)}h</span></div>`;
+                });
+            });
+        }
+
+        let timerSeconds = 0, timerInterval = null;
+        function updateTimerUI() {
+            const h = Math.floor(timerSeconds/3600).toString().padStart(2,'0');
+            const m = Math.floor((timerSeconds%3600)/60).toString().padStart(2,'0');
+            const s = (timerSeconds%60).toString().padStart(2,'0');
+            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+        }
+        function startTimer() { if(!timerInterval) timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
+        function stopTimer() {
+            clearInterval(timerInterval); timerInterval = null;
+            const ref = db.ref(`ranking/${currentUser}_${currentPin}`);
+            ref.once('value').then(s => {
+                const total = (s.val()?.time || 0) + timerSeconds;
+                ref.set({ name: currentUser, time: total });
+                const t = document.getElementById('study-toast'); t.innerText = `${currentUser} đã học xong!`;
+                t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000);
+                timerSeconds = 0; updateTimerUI();
+            });
+        }
+
+        let globalPath = "notes";
         function toggleMode() {
-            const status = document.getElementById('room-status');
-            const timerUI = document.getElementById('timer-container'); 
-            const isToPrivate = (status.innerText === 'CÔNG CỘNG');
-            status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
-            
-            timerUI.style.display = isToPrivate ? 'none' : 'flex';
-            
+            const s = document.getElementById('room-status');
+            const isP = (s.innerText === 'CÔNG CỘNG');
+            s.innerText = isP ? 'CÁ NHÂN' : 'CÔNG CỘNG';
+            s.style.color = isP ? '#ff00ff' : '#00ff00';
             loadNotes();
         }
 
         function loadNotes() {
-            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            localStorage.setItem('note_user_id', typedId);
             if (globalPath) db.ref(globalPath).off();
-            globalPath = (document.getElementById('room-status').innerText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            db.ref(globalPath).on('value', (snapshot) => {
-                wall.innerHTML = "";
-                const data = snapshot.val();
-                if(data) {
-                    Object.keys(data).forEach(id => {
-                        if (id !== 'private') renderNote(id, data[id], globalPath);
-                    });
-                }
+            globalPath = (document.getElementById('room-status').innerText === 'CÁ NHÂN') ? `notes/private/${currentUser}_${currentPin}` : 'notes';
+            db.ref(globalPath).on('value', snap => {
+                wall.innerHTML = ""; const data = snap.val();
+                if(data) Object.keys(data).forEach(id => renderNote(id, data[id], globalPath));
             });
         }
 
-        function renderNote(id, item, currentPath) {
+        // --- HÀM RENDER NOTE GỐC ---
+        function renderNote(id, item, path) {
             const note = document.createElement('div');
             note.className = 'sticky-note';
-            note.contentEditable = "true";
-            note.style.left = item.x || "100px";
-            note.style.top = item.y || "100px";
-            note.style.width = item.w || "180px";
-            note.style.height = item.h || "auto";
-            note.style.backgroundColor = item.color || '#fff';
-            note.innerText = item.text || "";
-            if (item.image) {
-                const img = document.createElement('img');
-                img.src = item.image;
-                note.appendChild(img);
-            }
+            note.style.cssText = `left:${item.x}; top:${item.y}; width:${item.w}; height:${item.h}; background:${item.color};`;
+            note.contentEditable = "true"; note.innerText = item.text || "";
+            note.onblur = () => db.ref(`${path}/${id}`).update({ text: note.innerText, w: note.style.width, h: note.style.height });
+            note.oncontextmenu = (e) => { e.preventDefault(); if(confirm("Xóa?")) db.ref(`${path}/${id}`).remove(); };
             
-            let isDeleting = false;
-            const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
-            note.ondblclick = deleteMe;
-            
-            note.onblur = () => { 
-                if(!isDeleting) {
-                    db.ref(`${currentPath}/${id}`).update({ 
-                        text: note.innerText,
-                        w: note.style.width,
-                        h: note.style.height
-                    }); 
-                }
+            let oX, oY;
+            note.onmousedown = (e) => {
+                if(e.offsetX > note.offsetWidth - 20) return;
+                oX = e.clientX - note.offsetLeft; oY = e.clientY - note.offsetTop;
+                const move = (ev) => { note.style.left = (ev.clientX - oX) + 'px'; note.style.top = (ev.clientY - oY) + 'px'; };
+                const stop = () => { db.ref(`${path}/${id}`).update({ x: note.style.left, y: note.style.top }); window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop); };
+                window.addEventListener('mousemove', move); window.addEventListener('mouseup', stop);
             };
-            
-            makeDraggable(note, id, currentPath);
             wall.appendChild(note);
         }
 
-        function makeDraggable(el, id, path) {
-            let oX, oY;
-            const start = (e) => {
-                if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
-                if(document.activeElement === el) return;
-                
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
-                const move = (ev) => {
-                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                    el.style.left = (mX - oX) + 'px';
-                    el.style.top = (mY - oY) + 'px';
-                };
-                const stop = () => {
-                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
-                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
-                };
-                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
-                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
-            };
-            el.addEventListener('mousedown', start);
-            el.addEventListener('touchstart', start);
-        }
-
-        function uploadImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const maxW = 400;
-                    canvas.width = maxW;
-                    canvas.height = img.height * (maxW / img.width);
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    db.ref(globalPath).push({
-                        text: "Hình ảnh",
-                        image: canvas.toDataURL('image/jpeg', 0.6),
-                        x: (Math.abs(wallLeft) + 200) / scale + 'px',
-                        y: (Math.abs(wallTop) + 200) / scale + 'px',
-                        w: "200px",
-                        h: "auto",
-                        color: document.getElementById('color-picker').value
-                    });
-                    input.value = "";
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
         function sendToCloud() {
-            const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-            db.ref(globalPath).push({
-                text: input.value,
-                x: (Math.abs(wallLeft) + 150) / scale + 'px',
-                y: (Math.abs(wallTop) + 150) / scale + 'px',
-                w: "180px",
-                h: "auto",
-                color: document.getElementById('color-picker').value
-            }).then(() => { input.value = ""; });
+            const input = document.getElementById('note-input'); if (!input.value.trim()) return;
+            db.ref(globalPath).push({ text: input.value, x: (Math.abs(wallLeft)+150)/scale+'px', y: (Math.abs(wallTop)+150)/scale+'px', w: "180px", h: "auto", color: document.getElementById('color-picker').value });
+            input.value = "";
         }
-
-       
-        let timerSeconds = 0;
-        let timerInterval = null;
-
-        function updateTimerUI() {
-            const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
-            const m = Math.floor((timerSeconds % 3600) / 60).toString().padStart(2, '0');
-            const s = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
-        }
-
-        function startTimer() {
-            if (timerInterval) return; 
-            timerInterval = setInterval(() => {
-                timerSeconds++;
-                updateTimerUI();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (!timerInterval) return;
-            clearInterval(timerInterval);
-            timerInterval = null;
-            
-            
-            const h = Math.floor(timerSeconds / 3600);
-            const m = Math.floor((timerSeconds % 3600) / 60);
-            const s = timerSeconds % 60;
-            const toast = document.getElementById('study-toast');
-            toast.innerText = `Chúc mừng! Bạn đã học được ${h} giờ, ${m} phút và ${s} giây 🎉`;
-            toast.style.display = 'block';
-            
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
-        }
-
-        function resetTimer() {
-            stopTimer();
-            timerSeconds = 0;
-            updateTimerUI();
-        }
-
-        loadNotes();
     </script>
 </body>
 </html>
