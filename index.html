@@ -40,6 +40,16 @@
             flex-direction: column;
         }
         
+        /* CSS CHO NÚT TIM - THÊM MỚI */
+        .like-btn {
+            position: absolute; bottom: 5px; right: 5px; cursor: pointer;
+            background: rgba(255,255,255,0.7); border-radius: 12px;
+            padding: 2px 8px; font-size: 11px; font-weight: bold;
+            border: 1px solid rgba(0,0,0,0.1); transition: 0.2s; user-select: none;
+            z-index: 10;
+        }
+        .like-btn:active { transform: scale(1.3); }
+
         .sticky-note img { 
             width: 100%; 
             height: auto; 
@@ -74,12 +84,11 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 48 👽</h3>
+        <h3>UPDATE - 49 ❤️</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
     <div id="study-toast"></div>
-    
     <div id="viewport"><div id="wall"></div></div>
     
     <div id="dock">
@@ -219,6 +228,18 @@
                 img.src = item.image;
                 note.appendChild(img);
             }
+
+            // NÚT THẢ TIM - PHẦN CHÈN THÊM DUY NHẤT
+            const likeBtn = document.createElement('div');
+            likeBtn.className = 'like-btn';
+            likeBtn.contentEditable = "false";
+            likeBtn.innerHTML = `❤️ ${item.likes || 0}`;
+            likeBtn.onclick = (e) => {
+                e.stopPropagation();
+                db.ref(`${currentPath}/${id}/likes`).transaction((c) => (c || 0) + 1);
+            };
+            note.appendChild(likeBtn);
+
             let isDeleting = false;
             const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.ondblclick = deleteMe;
@@ -238,6 +259,9 @@
         function makeDraggable(el, id, path) {
             let oX, oY;
             const start = (e) => {
+                // CHẶN KÉO KHI BẤM TIM
+                if(e.target.className === 'like-btn') return;
+                
                 if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
                 if(document.activeElement === el) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -281,7 +305,8 @@
                         y: (Math.abs(wallTop) + 200) / scale + 'px',
                         w: "200px",
                         h: "auto",
-                        color: document.getElementById('color-picker').value
+                        color: document.getElementById('color-picker').value,
+                        likes: 0
                     });
                     input.value = "";
                 };
@@ -298,7 +323,8 @@
                 y: (Math.abs(wallTop) + 150) / scale + 'px',
                 w: "180px",
                 h: "auto",
-                color: document.getElementById('color-picker').value
+                color: document.getElementById('color-picker').value,
+                likes: 0
             }).then(() => { input.value = ""; });
         }
 
@@ -327,7 +353,7 @@
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
         function resetTimer() {
-            stopTimer();
+            if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
             timerSeconds = 0;
             updateTimerUI();
         }
