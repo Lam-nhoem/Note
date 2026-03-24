@@ -39,16 +39,7 @@
             display: flex;
             flex-direction: column;
         }
-
-        /* Nút tim khóa dòng để không bị lỗi như ảnh Lâm gửi */
-        .like-btn {
-            position: absolute; bottom: 5px; right: 5px; cursor: pointer;
-            background: rgba(255,255,255,0.7); border-radius: 12px;
-            padding: 2px 8px; font-size: 11px; font-weight: bold;
-            border: 1px solid rgba(0,0,0,0.1); transition: 0.2s; user-select: none;
-            z-index: 1000; white-space: nowrap;
-        }
-
+        
         .sticky-note img { 
             width: 100%; 
             height: auto; 
@@ -71,6 +62,7 @@
         #timer-display { font-family: monospace; font-size: 18px; color: #00ff00; font-weight: bold; }
         .timer-controls { display: flex; gap: 4px; }
         .timer-btn { background: #222; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+        .timer-btn:active { background: #444; }
         
         #study-toast {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -82,11 +74,12 @@
 </head>
 <body>
     <div id="guide-box">
-        <h3>UPDATE - 49 🧶</h3>
+        <h3>UPDATE - 51 👽</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
     <div id="study-toast"></div>
+    
     <div id="viewport"><div id="wall"></div></div>
     
     <div id="dock">
@@ -123,7 +116,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-       
         let currentUserId = localStorage.getItem('note_user_id') || 'user_' + Math.random().toString(36).substr(2, 5);
         document.getElementById('user-id-input').value = currentUserId;
 
@@ -133,9 +125,17 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-       
+        let initialDistance = null;
+        let initialScale = 1;
+        const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+
         const handleStart = (e) => {
-            if(e.touches && e.touches.length === 2) return;
+            if(e.touches && e.touches.length === 2) {
+                isPanning = false;
+                initialDistance = getDistance(e.touches);
+                initialScale = scale;
+                return;
+            }
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -144,14 +144,24 @@
         };
 
         const handleMove = (e) => {
-            if (!isPanning || (e.touches && e.touches.length === 2)) return;
+            if (e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = getDistance(e.touches);
+                if (initialDistance) {
+                    const delta = currentDistance / initialDistance;
+                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
+                    updateWallTransform();
+                }
+                return;
+            }
+            if (!isPanning) return;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             wallLeft = cX - startX; wallTop = cY - startY;
             updateWallTransform();
         };
 
-        const handleEnd = () => { isPanning = false; };
+        const handleEnd = () => { isPanning = false; initialDistance = null; };
 
         viewport.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
@@ -167,7 +177,6 @@
             updateWallTransform();
         }, {passive: false});
 
-        
         let globalPath = "notes"; 
         function toggleMode() {
             const status = document.getElementById('room-status');
@@ -179,7 +188,6 @@
             loadNotes();
         }
 
-        
         function loadNotes() {
             const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
             localStorage.setItem('note_user_id', typedId);
@@ -196,7 +204,6 @@
             });
         }
 
-        
         function renderNote(id, item, currentPath) {
             const note = document.createElement('div');
             note.className = 'sticky-note';
@@ -212,18 +219,6 @@
                 img.src = item.image;
                 note.appendChild(img);
             }
-
-            // Nút Thả Tim (Vị trí không đổi)
-            const likeBtn = document.createElement('div');
-            likeBtn.className = 'like-btn';
-            likeBtn.contentEditable = "false";
-            likeBtn.innerHTML = `❤️ ${item.likes || 0}`;
-            likeBtn.onclick = (e) => {
-                e.stopPropagation();
-                db.ref(`${currentPath}/${id}/likes`).transaction((c) => (c || 0) + 1);
-            };
-            note.appendChild(likeBtn);
-
             let isDeleting = false;
             const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.ondblclick = deleteMe;
@@ -240,11 +235,9 @@
             wall.appendChild(note);
         }
 
-        
         function makeDraggable(el, id, path) {
             let oX, oY;
             const start = (e) => {
-                if (e.target.className === 'like-btn') return;
                 if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
                 if(document.activeElement === el) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -259,13 +252,15 @@
                 const stop = () => {
                     db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
                     window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
+                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
                 };
-                window.addEventListener('mousemove', move); window.addEventListener('mouseup', stop);
+                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
+                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
             };
             el.addEventListener('mousedown', start);
+            el.addEventListener('touchstart', start);
         }
 
-        
         function uploadImage(input) {
             const file = input.files[0];
             if (!file) return;
@@ -275,8 +270,9 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 400;
-                    canvas.height = img.height * (400 / img.width);
+                    const maxW = 400;
+                    canvas.width = maxW;
+                    canvas.height = img.height * (maxW / img.width);
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     db.ref(globalPath).push({
                         text: "Hình ảnh",
@@ -285,15 +281,14 @@
                         y: (Math.abs(wallTop) + 200) / scale + 'px',
                         w: "200px",
                         h: "auto",
-                        color: document.getElementById('color-picker').value,
-                        likes: 0
+                        color: document.getElementById('color-picker').value
                     });
+                    input.value = "";
                 };
             };
             reader.readAsDataURL(file);
         }
 
-        
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
@@ -303,12 +298,10 @@
                 y: (Math.abs(wallTop) + 150) / scale + 'px',
                 w: "180px",
                 h: "auto",
-                color: document.getElementById('color-picker').value,
-                likes: 0
+                color: document.getElementById('color-picker').value
             }).then(() => { input.value = ""; });
         }
 
-        
         let timerSeconds = 0;
         let timerInterval = null;
         function updateTimerUI() {
@@ -325,8 +318,11 @@
             if (!timerInterval) return;
             clearInterval(timerInterval);
             timerInterval = null;
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const s = timerSeconds % 60;
             const toast = document.getElementById('study-toast');
-            toast.innerText = `Xong rồi! 🎉`;
+            toast.innerText = `Chúc mừng! Bạn đã học được ${h} giờ, ${m} phút và ${s} giây 🎉`;
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
@@ -335,7 +331,6 @@
             timerSeconds = 0;
             updateTimerUI();
         }
-
         loadNotes();
     </script>
 </body>
