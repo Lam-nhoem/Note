@@ -50,7 +50,7 @@
             pointer-events: none; 
         }
 
-        /* MENU & POPUP STYLES - ĐÃ CẬP NHẬT MÀU XANH LÁ */
+       
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
         
         #menu-panel { 
@@ -71,20 +71,13 @@
         }
 
         .menu-section { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
-        
-        /* ĐỔI MÀU CÁC CHỮ TIÊU ĐỀ TRONG MENU */
         .menu-section h4 { margin: 0 0 5px; color: #00ff00; font-size: 14px; }
-        
-        /* ĐỔI MÀU LINK SẢN PHẨM KHÁC */
-        .friend-link { display: block; background: #222; color: #00ff00; text-decoration: none; padding: 10px; border-radius: 5px; margin-top: 8px; font-size: 12px; border: 1px solid #00ff00; text-align: center; }
-        .friend-link:hover { background: #004400; color: #fff; }
 
         #about-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); width: 320px; background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
         #about-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
 
-        /* SWITCH STYLE - CẬP NHẬT MÀU XANH KHI CHECKED */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
@@ -133,11 +126,7 @@
             </label>
         </div>
         <div class="menu-section">
-            <h4>Sản phẩm khác</h4>
-            <a href="#" target="_blank" class="friend-link">Web của bạn Lâm</a>
-        </div>
-        <div class="menu-section">
-            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00;" onclick="toggleAbout(true)">Về chúng tôi</h4>
+            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi</h4>
         </div>
     </div>
 
@@ -148,7 +137,7 @@
     </div>
 
     <div id="guide-box">
-        <h3>UPDATE - 53 🤓</h3>
+        <h3>UPDATE - 54 👅</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
@@ -177,7 +166,6 @@
     </div>
 
     <script>
-        // ... (Giữ nguyên toàn bộ phần Script của ông như cũ)
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
