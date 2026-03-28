@@ -50,7 +50,6 @@
             pointer-events: none; 
         }
 
-       
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
         
         #menu-panel { 
@@ -73,7 +72,12 @@
         .menu-section { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
         .menu-section h4 { margin: 0 0 5px; color: #00ff00; font-size: 14px; }
 
-        #about-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); width: 320px; background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        #about-popup { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
+            width: 340px; max-height: 80vh; overflow-y: auto;
+            background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; 
+            z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
+        }
         #about-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
@@ -105,6 +109,10 @@
             border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000;
             display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
+
+        .about-link { color: #00d4ff; text-decoration: none; }
+        .about-link:hover { text-decoration: underline; }
+        .member-link { color: #aaa; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -131,13 +139,32 @@
     </div>
 
     <div id="about-popup">
-        <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00;">✕</span>
+        <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi</h3>
-        <p style="font-size: 13px; line-height: 1.5; color: white;">Xin chào ! Free note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàng chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập. Hiện này, web đã được tối ưu để có thể sử dụng trên điện thoại, ipad, laptop và máy tính. Hi vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu !</p>
+        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">
+            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập. Hiện nay, web đã được tối ưu để có thể sử dụng trên điện thoại, iPad, laptop và máy tính. Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu!
+        </p>
+        
+        <div style="font-size: 13px; line-height: 1.6;">
+            <p><strong>Nhà phát triển chính 🖥️:</strong><br>
+                <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link" style="font-size: 14px;">Lê Hoàng Tùng Lâm</a>
+            </p>
+
+            <p><strong>Các nhà tài trợ 💲:</strong><br>
+                • <a href="https://www.facebook.com/profile.php?id=100090648150836" target="_blank" class="about-link">Lương Việt Tiến</a><br>
+                • <a href="https://www.facebook.com/nguyen.le.minh.942067" target="_blank" class="about-link">Nguyễn Lê Minh</a>
+            </p>
+
+            <p><strong>Và một số thành viên khác 🕸️:</strong><br>
+                • <a href="https://www.facebook.com/thfenthaoo" target="_blank" class="member-link">Phạm Lê Thiên Thảo</a><br>
+                • <a href="https://www.facebook.com/nguyen.huu.loc.61406" target="_blank" class="member-link">Nguyễn Hữu Lộc</a><br>
+                • <a href="https://www.facebook.com/profile.php?id=61580451671854" target="_blank" class="member-link">Nguyễn Anh Huy</a>
+            </p>
+        </div>
     </div>
 
     <div id="guide-box">
-        <h3>UPDATE - 54 👅</h3>
+        <h3>UPDATE - 55 🌐</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
