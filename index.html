@@ -126,7 +126,7 @@
 
     <div id="menu-panel">
         <div class="menu-section" style="display: flex; justify-content: space-between; align-items: center;">
-            <h4>Bảo vệ mắt</h4>
+            <h4>Bảo vệ mắt 🛡️</h4>
             <label class="switch">
                 <input type="checkbox" onchange="toggleEyeCare(this)">
                 <span class="slider"></span>
@@ -139,13 +139,13 @@
 
     <div id="about-popup">
         <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
-        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi</h3>
+        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi </h3>
         <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">
-            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập. Hiện nay, web đã được tối ưu để có thể sử dụng trên điện thoại, iPad, laptop và máy tính. Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu!
+            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập, hay có thể sử dụng để note lại mật khẩu, tài khoản để tránh bị quên, hoặc ghi ra mục tiêu, những việc cần làm trong hôm nay, để có thể lên nhắc ta làm những việc cần làm, lên kế hoạch trong ngày,.. Hiện nay, web đã được tối ưu để có thể sử dụng trên điện thoại, iPad, laptop và máy tính. Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu!
         </p>
         
         <div style="font-size: 13px; line-height: 1.6;">
-            <p><strong>Nhà phát triển chính 🖥️:</strong><br>
+            <p><strong>Nhà phát triển chính 🛠️:</strong><br>
                 <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link" style="font-size: 14px;">Lê Hoàng Tùng Lâm</a>
             </p>
 
@@ -163,7 +163,7 @@
     </div>
 
     <div id="guide-box">
-        <h3>UPDATE - 55 ⚙️</h3>
+        <h3>UPDATE - 55 🛸</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
@@ -332,7 +332,7 @@
                 note.appendChild(img);
             }
             let isDeleting = false;
-            const deleteMe = () => { if(confirm("Xóa nhé?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
+            const deleteMe = () => { if(confirm("xác nhận xoá ?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.ondblclick = deleteMe;
             note.onblur = () => { 
                 if(!isDeleting) {
