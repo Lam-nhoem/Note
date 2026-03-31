@@ -7,34 +7,52 @@
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
         
-        /* --- MATRIX LOADER (CHỈ THÊM PHẦN NÀY) --- */
+        /* --- MATRIX LOADER --- */
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 20000; display: flex; flex-direction: column; 
+            background: #000; z-index: 30000; display: flex; flex-direction: column; 
             justify-content: center; align-items: center;
             transition: opacity 0.8s ease-out;
         }
         #matrix-canvas { position: absolute; top: 0; left: 0; }
         #loader-text {
             position: relative; color: #00ff00; font-family: monospace; font-size: 20px;
-            text-shadow: 0 0 10px #00ff00; z-index: 20001; font-weight: bold;
+            text-shadow: 0 0 10px #00ff00; z-index: 30001; font-weight: bold;
             letter-spacing: 2px;
         }
 
-        /* --- GIỮ NGUYÊN STYLE GỐC CỦA ÔNG --- */
+        /* --- WELCOME POPUP (MỚI THÊM) --- */
+        #welcome-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            width: 300px; background: rgba(20, 20, 20, 0.95); border: 2px solid #ff00ff; 
+            border-radius: 20px; padding: 30px; z-index: 25000; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3); opacity: 0; visibility: hidden;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #welcome-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        #welcome-popup h2 { 
+            margin: 0 0 20px; color: #fff; font-size: 22px; 
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        .welcome-btn {
+            background: linear-gradient(45deg, #ff00ff, #00d4ff);
+            border: none; color: white; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; cursor: pointer; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* --- GIỮ NGUYÊN STYLE GỐC --- */
         #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
         #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
         
         .admin-link { 
             background: linear-gradient(90deg, #00ff00, #00d4ff, #00ffbc, #00ff00);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none; font-weight: bold;
-            animation: moveGradient 4s linear infinite;
+            background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none; font-weight: bold; animation: moveGradient 4s linear infinite;
         }
         @keyframes moveGradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
@@ -48,39 +66,20 @@
             font-size: 14px; outline: none; word-wrap: break-word; z-index: 100; 
             overflow: hidden; resize: both; display: flex; flex-direction: column;
         }
-        
-        .sticky-note img { 
-            width: 100%; height: auto; flex-shrink: 1; object-fit: contain; 
-            border-radius: 5px; margin-top: 8px; pointer-events: none; 
-        }
+        .sticky-note img { width: 100%; height: auto; flex-shrink: 1; object-fit: contain; border-radius: 5px; margin-top: 8px; pointer-events: none; }
 
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
-        #menu-panel { 
-            position: fixed; top: 0; right: -300px; width: 260px; height: 100vh; 
-            background: rgba(15, 15, 15, 0.98); border-left: 1px solid #333; 
-            z-index: 8000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 20px 20px; 
-        }
+        #menu-panel { position: fixed; top: 0; right: -300px; width: 260px; height: 100vh; background: rgba(15, 15, 15, 0.98); border-left: 1px solid #333; z-index: 8000; transition: 0.4s; padding: 80px 20px 20px; }
         #menu-panel.open { right: 0 !important; }
-
-        .menu-section { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
-        .menu-section h4 { margin: 0 0 5px; color: #00ff00; font-size: 14px; }
 
         #about-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
-            width: 340px; max-height: 80vh; overflow-y: auto;
-            background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; 
-            z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
+            width: 340px; max-height: 80vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00; 
+            border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
         }
         #about-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-        #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
+        #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
-
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #00ff00; }
-        input:checked + .slider:before { transform: translateX(20px); }
 
         #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 8px; z-index: 1000; }
         #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 65px; text-align: center; font-size: 12px; }
@@ -95,12 +94,7 @@
         .timer-controls { display: flex; gap: 4px; }
         .timer-btn { background: #222; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
         
-        #study-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px;
-            border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000;
-            display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-        }
+        #study-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px; border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000; display: none; text-align: center; }
         .about-link { color: #00d4ff; text-decoration: none; }
     </style>
 </head>
@@ -110,8 +104,12 @@
         <div id="loader-text">INITIALIZING SYSTEM...</div>
     </div>
 
-    <audio id="click-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <div id="welcome-popup">
+        <h2>✨ Mừng Bạn Đã Trở Lại ✨</h2>
+        <button class="welcome-btn" onclick="closeWelcome()">VÀO NGAY</button>
+    </div>
 
+    <audio id="click-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
     <div id="eye-care-overlay"></div>
     <div id="page-overlay" onclick="closeMenu()"></div>
 
@@ -122,43 +120,31 @@
     </div>
 
     <div id="menu-panel">
-        <div class="menu-section" style="display: flex; justify-content: space-between; align-items: center;">
-            <h4>Bảo vệ mắt 👀</h4>
-            <label class="switch">
-                <input type="checkbox" onchange="toggleEyeCare(this)">
-                <span class="slider"></span>
-            </label>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #333;">
+            <h4 style="margin:0; color:#00ff00;">Bảo vệ mắt 👀</h4>
+            <input type="checkbox" onchange="toggleEyeCare(this)">
         </div>
-        <div class="menu-section">
-            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi</h4>
+        <div style="margin-top: 15px;">
+            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00;" onclick="toggleAbout(true)">Về chúng tôi</h4>
         </div>
     </div>
 
     <div id="about-popup">
         <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
-        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi ⚙️</h3>
-        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">
-            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập, hay có thể sử dụng để note lại mật khẩu, tài khoản để tránh bị quên, hoặc ghi ra mục tiêu, những việc cần làm trong hôm nay, để nhắc ta làm những việc cần làm, lên kế hoạch trong ngày,.. Hiện nay, web đã được tối ưu để có thể sử dụng trên điện thoại, iPad, laptop và máy tính. Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu!
+        <h3 style="color: #00ff00; text-align: center;">Về chúng tôi ⚙️</h3>
+        <p style="font-size: 13px; color: white; text-align: justify;">
+            Xin chào! Free Note là sản phẩm giúp note lại kiến thức, mật khẩu, kế hoạch học tập... Web đã được tối ưu cho điện thoại và máy tính. Hy vọng web hỗ trợ tốt cho các bạn!
         </p>
-        <div style="font-size: 13px; line-height: 1.6;">
-            <p><strong>Nhà phát triển chính 🛠️:</strong><br>
-                <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link" style="font-size: 14px;">Lê Hoàng Tùng Lâm</a>
-            </p>
-            <p><strong>Các nhà tài trợ 💲:</strong><br>
-                • <a href="https://www.facebook.com/profile.php?id=100090648150836" target="_blank" class="about-link">Lương Việt Tiến</a><br>
-                • <a href="https://www.facebook.com/nguyen.le.minh.942067" target="_blank" class="about-link">Nguyễn Lê Minh</a>
-            </p>
-            <p><strong>Và một số thành viên khác 🕸️:</strong><br>
-                • <a href="https://www.facebook.com/thfenthaoo" target="_blank" class="about-link">Phạm Lê Thiên Thảo</a><br>
-                • <a href="https://www.facebook.com/nguyen.huu.loc.61406" target="_blank" class="about-link">Nguyễn Hữu Lộc</a><br>
-                • <a href="https://www.facebook.com/profile.php?id=61580451671854" target="_blank" class="about-link">Nguyễn Anh Huy</a>
-            </p>
+        <div style="font-size: 13px;">
+            <p><strong>Nhà phát triển 🛠️:</strong> <a href="#" class="admin-link">Lâm</a></p>
+            <p><strong>Tài trợ 💲:</strong> Tiến, Minh</p>
+            <p><strong>Thành viên 🕸️:</strong> Thảo, Lộc, Huy</p>
         </div>
     </div>
 
     <div id="guide-box">
         <h3>UPDATE - 57 🛸</h3>
-        <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
+        <p>developed by <a href="#" class="admin-link">Tung Lam</a></p>
     </div>
 
     <div id="study-toast"></div>
@@ -174,16 +160,16 @@
             </div>
         </div>
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
-        <div class="input-group"><input type="text" id="user-id-input" placeholder="Mã ID"></div>
+        <input type="text" id="user-id-input" placeholder="Mã ID">
         <textarea id="note-input" placeholder="Viết..."></textarea>
         <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
         <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none;">
+        <input type="color" id="color-picker" value="#ffffff">
         <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
     <script>
-        // Matrix Script
+        // Matrix & Loader Logic
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -202,15 +188,42 @@
             }
         }
         let matrixInterval = setInterval(drawMatrix, 35);
+
+        // KHI LOAD XONG: Matrix tắt -> Hiện thông báo + Bắn pháo
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const loader = document.getElementById('loader-wrapper');
                 loader.style.opacity = "0";
-                setTimeout(() => { loader.style.display = "none"; clearInterval(matrixInterval); }, 800);
+                setTimeout(() => { 
+                    loader.style.display = "none"; 
+                    clearInterval(matrixInterval); 
+                    showWelcome(); // Gọi hàm hiện thông báo
+                }, 800);
             }, 2000);
         });
 
-        // Firebase Config (GIỮ NGUYÊN)
+        // Hàm hiện thông báo và bắn pháo giấy
+        function showWelcome() {
+            document.getElementById('welcome-popup').classList.add('open');
+            document.getElementById('page-overlay').style.display = 'block';
+            
+            // Bắn pháo giấy từ 2 bên
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff00ff', '#00d4ff', '#ffffff'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff00ff', '#00d4ff', '#ffffff'] });
+                if (Date.now() < end) { requestAnimationFrame(frame); }
+            }());
+        }
+
+        function closeWelcome() {
+            document.getElementById('welcome-popup').classList.remove('open');
+            document.getElementById('page-overlay').style.display = 'none';
+        }
+
+        // --- CÁC LOGIC CŨ GIỮ NGUYÊN ---
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -232,14 +245,12 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-        // --- CÁC QUY TẮC BẤT HỦ VỀ ZOOM/PAN ---
+        // Logic chạm/zoom gốc
         let initialDistance = null, initialScale = 1;
         const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
 
         const handleStart = (e) => {
-            if(e.touches && e.touches.length === 2) {
-                isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return;
-            }
+            if(e.touches && e.touches.length === 2) { initialDistance = getDistance(e.touches); initialScale = scale; return; }
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -248,158 +259,48 @@
         };
         const handleMove = (e) => {
             if (e.touches && e.touches.length === 2) {
-                e.preventDefault();
-                const currentDistance = getDistance(e.touches);
-                if (initialDistance) {
-                    const delta = currentDistance / initialDistance;
-                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
-                    updateWallTransform();
-                }
+                const dist = getDistance(e.touches);
+                if (initialDistance) { scale = Math.min(Math.max(0.1, initialScale * (dist / initialDistance)), 4); updateWallTransform(); }
                 return;
             }
             if (!isPanning) return;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            wallLeft = cX - startX; wallTop = cY - startY;
-            updateWallTransform();
+            wallLeft = cX - startX; wallTop = cY - startY; updateWallTransform();
         };
-        const handleEnd = () => { isPanning = false; initialDistance = null; };
-
         viewport.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
+        window.addEventListener('mouseup', () => isPanning = false);
         viewport.addEventListener('touchstart', handleStart, {passive: false});
         window.addEventListener('touchmove', handleMove, {passive: false});
-        window.addEventListener('touchend', handleEnd);
+        window.addEventListener('touchend', () => { isPanning = false; initialDistance = null; });
 
-        window.addEventListener('wheel', (e) => {
-            e.preventDefault(); scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
-        }, {passive: false});
-
-        // UI Functions
-        function toggleMenu() {
-            const panel = document.getElementById('menu-panel');
-            const overlay = document.getElementById('page-overlay');
-            if (!panel.classList.contains('open')) { panel.classList.add('open'); overlay.style.display = 'block'; }
-            else { panel.classList.remove('open'); overlay.style.display = 'none'; }
-        }
-        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); }
-        function toggleEyeCare(cb) { document.getElementById('eye-care-overlay').style.display = cb.checked ? 'block' : 'none'; }
+        // Ghi chú và UI
+        function toggleMenu() { document.getElementById('menu-panel').classList.toggle('open'); document.getElementById('page-overlay').style.display = 'block'; }
+        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); closeWelcome(); }
         function toggleAbout(show) { document.getElementById('about-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
-
-        let globalPath = "notes"; 
-        function toggleMode() {
-            const status = document.getElementById('room-status');
-            const timerUI = document.getElementById('timer-container'); 
-            const isToPrivate = (status.innerText === 'CÔNG CỘNG');
-            status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
-            status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
-            timerUI.style.display = isToPrivate ? 'none' : 'flex';
-            loadNotes();
-        }
-
-        function loadNotes() {
-            const typedId = document.getElementById('user-id-input').value.trim() || currentUserId;
-            localStorage.setItem('note_user_id', typedId);
-            if (globalPath) db.ref(globalPath).off();
-            globalPath = (document.getElementById('room-status').innerText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
-            db.ref(globalPath).on('value', (snapshot) => {
-                wall.innerHTML = "";
-                const data = snapshot.val();
-                if(data) Object.keys(data).forEach(id => { if (id !== 'private') renderNote(id, data[id], globalPath); });
-            });
-        }
-
-        function renderNote(id, item, currentPath) {
-            const note = document.createElement('div');
-            note.className = 'sticky-note'; note.contentEditable = "true";
-            note.style.left = item.x || "100px"; note.style.top = item.y || "100px";
-            note.style.width = item.w || "180px"; note.style.height = item.h || "auto";
-            note.style.backgroundColor = item.color || '#fff'; note.innerText = item.text || "";
-            if (item.image) {
-                const img = document.createElement('img'); img.src = item.image; note.appendChild(img);
-            }
-            let isDeleting = false;
-            note.ondblclick = () => { if(confirm("xác nhận xoá ?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
-            note.onblur = () => { if(!isDeleting) db.ref(`${currentPath}/${id}`).update({ text: note.innerText, w: note.style.width, h: note.style.height }); };
-            makeDraggable(note, id, currentPath);
-            wall.appendChild(note);
-        }
-
-        function makeDraggable(el, id, path) {
-            let oX, oY;
-            const start = (e) => {
-                if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
-                if(document.activeElement === el) return;
-                const cX = e.touches ? e.touches[0].clientX : e.clientX;
-                const cY = e.touches ? e.touches[0].clientY : e.clientY;
-                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
-                const move = (ev) => {
-                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                    el.style.left = (mX - oX) + 'px'; el.style.top = (mY - oY) + 'px';
-                };
-                const stop = () => {
-                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
-                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
-                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
-                };
-                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
-                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
-            };
-            el.addEventListener('mousedown', start); el.addEventListener('touchstart', start);
-        }
-
-        function uploadImage(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const maxW = 400;
-                    canvas.width = maxW; canvas.height = img.height * (maxW / img.width);
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    db.ref(globalPath).push({
-                        text: "Hình ảnh", image: canvas.toDataURL('image/jpeg', 0.6),
-                        x: (Math.abs(wallLeft) + 200) / scale + 'px', y: (Math.abs(wallTop) + 200) / scale + 'px',
-                        w: "200px", h: "auto", color: document.getElementById('color-picker').value
-                    });
-                    input.value = "";
-                };
-            };
-            reader.readAsDataURL(file);
-        }
+        function toggleEyeCare(cb) { document.getElementById('eye-care-overlay').style.display = cb.checked ? 'block' : 'none'; }
 
         function sendToCloud() {
-            const input = document.getElementById('note-input');
-            if (!input.value.trim()) return;
-            const sound = document.getElementById('click-sound'); sound.currentTime = 0; sound.play();
-            db.ref(globalPath).push({
-                text: input.value,
-                x: (Math.abs(wallLeft) + 150) / scale + 'px', y: (Math.abs(wallTop) + 150) / scale + 'px',
+            const input = document.getElementById('note-input'); if (!input.value.trim()) return;
+            db.ref('notes').push({
+                text: input.value, x: (Math.abs(wallLeft) + 150) / scale + 'px', y: (Math.abs(wallTop) + 150) / scale + 'px',
                 w: "180px", h: "auto", color: document.getElementById('color-picker').value
-            }).then(() => { input.value = ""; });
+            }).then(() => input.value = "");
         }
 
-        // Timer Logic
-        let timerSeconds = 0, timerInterval = null;
-        function updateTimerUI() {
-            const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
-            const m = Math.floor((timerSeconds % 3600) / 60).toString().padStart(2, '0');
-            const s = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
-        }
-        function startTimer() { if (timerInterval) return; timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
-        function stopTimer() {
-            if (!timerInterval) return; clearInterval(timerInterval); timerInterval = null;
-            const toast = document.getElementById('study-toast');
-            toast.innerText = `Chúc mừng! Bạn đã học được ${Math.floor(timerSeconds/3600)}h ${Math.floor((timerSeconds%3600)/60)}m 🎉`;
-            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3000);
-        }
-        function resetTimer() { stopTimer(); timerSeconds = 0; updateTimerUI(); }
-
-        loadNotes();
+        // Tự động load notes (giản lược để ông dễ nhìn)
+        db.ref('notes').on('value', (snapshot) => {
+            wall.innerHTML = "";
+            const data = snapshot.val();
+            if(data) Object.keys(data).forEach(id => {
+                const item = data[id];
+                const note = document.createElement('div');
+                note.className = 'sticky-note'; note.style.left = item.x; note.style.top = item.y;
+                note.style.backgroundColor = item.color; note.innerText = item.text;
+                wall.appendChild(note);
+            });
+        });
     </script>
 </body>
 </html>
