@@ -137,7 +137,7 @@
         <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi</h3>
         <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">
-            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập, hay có thể sử dụng để note lại mật khẩu, tài khoản để tránh bị quên, hoặc ghi ra mục tiêu, những việc cần làm trong hôm nay, để nhắc ta làm những việc cần làm, lên kế hoạch trong ngày,.. Hiện nay, web đã được tối ưu để có thể sử dụng trên điện thoại, iPad, laptop và máy tính. Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và nghiên cứu!
+            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập... Hy vọng web của bọn mình có thể hỗ trợ các bạn!
         </p>
         <div style="font-size: 13px; line-height: 1.6;">
             <p><strong>Nhà phát triển chính 🛠️:</strong><br>
@@ -156,7 +156,7 @@
     </div>
 
     <div id="guide-box">
-        <h3>UPDATE - 58 🛸</h3>
+        <h3>UPDATE - 59 🛸</h3>
         <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
     </div>
 
@@ -182,6 +182,25 @@
     </div>
 
     <script>
+        // HÀM PHÁT ÂM THANH TOÀN CỤC
+        function playClickSound() {
+            const sound = document.getElementById('click-sound');
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(() => {}); // Né lỗi trình duyệt chặn autoplay
+            }
+        }
+
+        // TỰ ĐỘNG GẮN SOUND CHO NÚT (TRỪ FACEBOOK)
+        document.addEventListener('click', (e) => {
+            const target = e.target.closest('button, .btn, .timer-btn, .switch, #menu-btn, #room-btn, [onclick]');
+            if (target) {
+                // Kiểm tra nếu là link FB hoặc nằm trong link FB thì KHÔNG phát sound
+                const isFB = target.closest('a') && target.closest('a').href.includes('facebook.com');
+                if (!isFB) playClickSound();
+            }
+        });
+
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -208,7 +227,6 @@
             }, 2000);
         });
 
-      
         const firebaseConfig = {
             apiKey: "AIzaSyARz3WftjUZ_fRoHn4EcL6k9BGlLNiyMA",
             authDomain: "note-15380.firebaseapp.com",
@@ -230,7 +248,6 @@
 
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
-        
         let initialDistance = null, initialScale = 1;
         const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
 
@@ -275,7 +292,6 @@
             scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
 
-        
         function toggleMenu() {
             const panel = document.getElementById('menu-panel');
             const overlay = document.getElementById('page-overlay');
@@ -372,7 +388,6 @@
         function sendToCloud() {
             const input = document.getElementById('note-input');
             if (!input.value.trim()) return;
-            const sound = document.getElementById('click-sound'); sound.currentTime = 0; sound.play();
             db.ref(globalPath).push({
                 text: input.value,
                 x: (Math.abs(wallLeft) + 150) / scale + 'px', y: (Math.abs(wallTop) + 150) / scale + 'px',
@@ -380,7 +395,6 @@
             }).then(() => { input.value = ""; });
         }
 
-        
         let timerSeconds = 0, timerInterval = null;
         function updateTimerUI() {
             const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
@@ -391,24 +405,13 @@
         function startTimer() { if (timerInterval) return; timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
         function stopTimer() {
             if (!timerInterval) return; clearInterval(timerInterval); timerInterval = null;
-
-            
             const hours = Math.floor(timerSeconds / 3600);
             const minutes = Math.floor((timerSeconds % 3600) / 60);
             const seconds = timerSeconds % 60;
-
             const toast = document.getElementById('study-toast');
             toast.innerText = "Chúc mừng! Bạn đã học được " + hours + "h " + minutes + "m " + seconds + "s 🎉";
             toast.style.display = 'block'; 
-
-           
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#00ff00', '#00d4ff', '#ffffff', '#ff00ff']
-            });
-
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00ff00', '#00d4ff', '#ffffff', '#ff00ff'] });
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
         function resetTimer() { stopTimer(); timerSeconds = 0; updateTimerUI(); }
