@@ -73,10 +73,13 @@
         }
 
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
+        
+        /* CẬP NHẬT CSS: Cho phép menu panel chính cuộn dọc nếu nội dung quá dài trên màn hình nhỏ */
         #menu-panel { 
             position: fixed; top: 0; right: -300px; width: 260px; height: 100vh; 
             background: rgba(15, 15, 15, 0.98); border-left: 1px solid #333; 
             z-index: 8000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 20px 20px; 
+            box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         #menu-panel.open { right: 0 !important; }
 
@@ -122,23 +125,24 @@
         }
         .about-link { color: #00d4ff; text-decoration: none; }
 
-        /* CSS BỔ SUNG: KHU VỰC HIỂN THỊ DANH SÁCH ĐÁNH GIÁ (SCROLL LƯỚT) */
+        /* SỬA LẠI CSS: Đảm bảo vùng chứa danh sách cuộn mượt mà và hiển thị thanh cuộn chuẩn chỉ */
         #feedback-list-container {
-            width: 100%; max-height: 150px; overflow-y: auto; margin-top: 10px; padding-right: 5px; border-top: 1px dashed #333;
+            width: 100%; max-height: 220px; overflow-y: auto; margin-top: 10px; padding-right: 5px; border-top: 1px dashed #333;
+            box-sizing: border-box; -webkit-overflow-scrolling: touch; position: relative; z-index: 8100;
         }
         #feedback-list-container::-webkit-scrollbar { width: 4px; }
         #feedback-list-container::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 10px; }
         
-        .feedback-item { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #00ff00; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 13px; }
+        .feedback-item { background: rgba(255, 255, 255, 0.04); border-left: 3px solid #00ff00; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 13px; }
         .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; }
         .feedback-item .user-name { color: #00ff00; font-weight: bold; }
 
-        /* CSS BỔ SUNG: POPUP NHẬP ĐÁNH GIÁ GIỮA MÀN HÌNH */
+        /* POPUP GỬI Ý KIẾN ĐÁNH GIÁ */
         #feedback-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px; 
             z-index: 10005; opacity: 0; visibility: hidden; transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-sizing: border-box;
         }
         #feedback-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
@@ -426,7 +430,6 @@
         function toggleAbout(show) { document.getElementById('about-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        // CÁC HÀM XỬ LÝ LOGIC ĐÁNH GIÁ (FEEDBACK) MỚI THÊM VÀO
         function toggleFeedbackPopup(show) {
             document.getElementById('feedback-popup').classList.toggle('open', show);
             document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
@@ -444,11 +447,11 @@
                 comment: text,
                 time: Date.now()
             }).then(() => {
-                alert('Gửi đánh giá thành công! Cảm ơn bro nha! 🔥');
+                alert('GỬI ĐÁNH GIÁ THÀNH CÔNG ⭐');
                 document.getElementById('feedback-form').reset();
                 toggleFeedbackPopup(false);
             }).catch((err) => {
-                alert('Gửi lỗi mất rồi bro ơi!');
+                alert('QUÁ TRÌNH GỬI BỊ LỖI !');
                 console.error(err);
             });
         });
@@ -479,7 +482,6 @@
             });
             container.innerHTML = feedbackHTML;
         });
-        // --- HẾT PHẦN CODE ĐÁNH GIÁ MỚI ---
 
         let globalPath = "notes"; 
         function toggleMode() {
