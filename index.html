@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Free Note - made by bad guy</title>
+    <title>Creative Note</title>
     <link rel="icon" href="unnamed-1.jpg">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
@@ -26,6 +26,25 @@
 
         #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
         #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
+
+        /* THÔNG BÁO HƯỚNG DẪN */
+        #menu-hint {
+            position: fixed; top: 25px; right: 75px; 
+            background: #00ff00; color: #000; padding: 6px 12px; 
+            border-radius: 8px; font-size: 12px; font-weight: bold;
+            z-index: 8500; animation: bounceHint 2s infinite;
+            pointer-events: none; display: none;
+        }
+        #menu-hint::after {
+            content: ''; position: absolute; right: -8px; top: 50%;
+            transform: translateY(-50%);
+            border-top: 6px solid transparent; border-bottom: 6px solid transparent;
+            border-left: 8px solid #00ff00;
+        }
+        @keyframes bounceHint {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-8px); }
+        }
         
         .admin-link { 
             background: linear-gradient(90deg, #00ff00, #00d4ff, #00ffbc, #00ff00);
@@ -48,9 +67,9 @@
             overflow: hidden; resize: both; display: flex; flex-direction: column;
         }
         
+        .sticky-note a { color: #0056b3 !important; text-decoration: underline !important; font-weight: bold; word-break: break-all; cursor: pointer !important; position: relative; z-index: 101; }
         .sticky-note img { 
-            width: 100%; height: auto; flex-shrink: 1; object-fit: contain; 
-            border-radius: 5px; margin-top: 8px; pointer-events: none; 
+            width: 100%; height: auto; flex-shrink: 1; object-fit: contain;border-radius: 5px; margin-top: 8px; pointer-events: none; 
         }
 
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
@@ -64,13 +83,14 @@
         .menu-section { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
         .menu-section h4 { margin: 0 0 5px; color: #00ff00; font-size: 14px; }
 
-        #about-popup { 
+        #about-popup, #how-to-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 340px; max-height: 80vh; overflow-y: auto;
             background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; 
             z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
         }
-        #about-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        #about-popup.open, #how-to-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        
         #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
 
@@ -101,18 +121,52 @@
             display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
         .about-link { color: #00d4ff; text-decoration: none; }
+
+        /* CSS BỔ SUNG: KHU VỰC HIỂN THỊ DANH SÁCH ĐÁNH GIÁ (SCROLL LƯỚT) */
+        #feedback-list-container {
+            width: 100%; max-height: 150px; overflow-y: auto; margin-top: 10px; padding-right: 5px; border-top: 1px dashed #333;
+        }
+        #feedback-list-container::-webkit-scrollbar { width: 4px; }
+        #feedback-list-container::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 10px; }
+        
+        .feedback-item { background: rgba(255, 255, 255, 0.03); border-left: 3px solid #00ff00; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 13px; }
+        .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; }
+        .feedback-item .user-name { color: #00ff00; font-weight: bold; }
+
+        /* CSS BỔ SUNG: POPUP NHẬP ĐÁNH GIÁ GIỮA MÀN HÌNH */
+        #feedback-popup { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
+            width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px; 
+            z-index: 10005; opacity: 0; visibility: hidden; transition: 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        #feedback-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        
+        #feedback-username { width: 100%; background: #222; border: 1px solid #333; color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; box-sizing: border-box; }
+        #feedback-username:focus, #feedback-text:focus { outline: none; border-color: #00ff00; }
+        
+        .rating-group { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+        .rating-btn { flex: 1; text-align: center; cursor: pointer; }
+        .rating-btn input { display: none; }
+        .rating-btn span { display: block; padding: 8px; background: #222; border: 1px solid #333; border-radius: 6px; font-size: 13px; color: #aaa; transition: 0.2s; }
+        .rating-btn input:checked + span { background: #00ff00; color: #000; font-weight: bold; border-color: #00ff00; }
+        
+        #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
+        #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="loader-wrapper">
         <canvas id="matrix-canvas"></canvas>
-        <div id="loader-text">WELCOME 👽</div>
+        <div id="loader-text">WELCOME 📝</div>
     </div>
 
     <audio id="click-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
 
     <div id="eye-care-overlay"></div>
     <div id="page-overlay" onclick="closeMenu()"></div>
+
+    <div id="menu-hint">Bấm vào để xem hướng dẫn sử dụng</div>
 
     <div id="menu-btn" onclick="toggleMenu()">
         <div style="width: 20px; height: 2px; background: #eee; margin: 4px 0;"></div>
@@ -129,15 +183,38 @@
             </label>
         </div>
         <div class="menu-section">
+            <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleHowTo(true)">Hướng dẫn sử dụng 📖</h4>
+        </div>
+        <div class="menu-section">
             <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi</h4>
+        </div>
+        <div class="menu-section" style="border-bottom: none;">
+            <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleFeedbackPopup(true)">💬 Đánh giá</h4>
+            <div id="feedback-list-container">
+                <p style="color: #666; font-size: 12px; text-align: center; margin-top: 10px;">Đang tải đánh giá...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="how-to-popup">
+        <span onclick="toggleHowTo(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
+        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Hướng dẫn sử dụng</h3>
+        <div style="font-size: 13px; line-height: 1.6; color: white;">
+            <p> <b>Di chuyển:</b> Nhấn giữ và kéo chuột/tay vào vùng trống để di chuyển bảng.</p>
+            <p> <b>Thu phóng:</b> Sử dụng con lăn chuột hoặc dùng 2 ngón tay trên điện thoại để thu và phóng.</p>
+            <p> <b>Tạo Note:</b> Nhập nội dung vào ô "Viết..." rồi nhấn <b>DÁN</b>.</p>
+            <p> <b>Gửi ảnh:</b> Nhấn icon 🖼️ để chọn và đăng ảnh lên bảng.</p>
+            <p> <b>Di chuyển Note:</b> Nhấn giữ vào tờ Note và kéo đến vị trí mong muốn.</p>
+            <p> <b>Sửa nội dung:</b> Nhấn trực tiếp vào nội dung trên tờ Note để sửa.</p>
+            <p> <b>Xóa Note:</b> Nhấn đúp (Double click) vào tờ Note để xóa.</p>
+            <p> <b>Phòng cá nhân:</b> Nhấn nút "Phòng" để chuyển sang chế độ riêng tư (cần nhập Mã ID).</p>
         </div>
     </div>
 
     <div id="about-popup">
         <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi</h3>
-        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">
-            Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập... Hy vọng web của bọn mình có thể hỗ trợ các bạn!
+        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập... Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và trong quá trình phát triển bản thân !
         </p>
         <div style="font-size: 13px; line-height: 1.6;">
             <p><strong>Nhà phát triển chính 🛠️:</strong><br>
@@ -149,15 +226,38 @@
             </p>
             <p><strong>Và một số thành viên khác 🕸️:</strong><br>
                 • <a href="https://www.facebook.com/thfenthaoo" target="_blank" class="about-link">Phạm Lê Thiên Thảo</a><br>
-                • <a href="https://www.facebook.com/nguyen.huu.loc.61406" target="_blank" class="about-link">Nguyễn Hữu Lộc</a><br>
-                • <a href="https://www.facebook.com/profile.php?id=61580451671854" target="_blank" class="about-link">Nguyễn Anh Huy</a>
             </p>
         </div>
     </div>
 
+    <div id="feedback-popup">
+        <span onclick="toggleFeedbackPopup(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
+        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Gửi Đánh Giá Của Bạn</h3>
+        
+        <form id="feedback-form">
+            <input type="text" id="feedback-username" placeholder="Biệt danh / Tên của bạn..." required>
+            <div class="rating-group">
+                <label class="rating-btn">
+                    <input type="radio" name="rating" value="Tệ" required>
+                    <span>😞 Tệ</span>
+                </label>
+                <label class="rating-btn">
+                    <input type="radio" name="rating" value="Ổn">
+                    <span>😐 Ổn</span>
+                </label>
+                <label class="rating-btn">
+                    <input type="radio" name="rating" value="Tốt">
+                    <span>😊 Tốt</span>
+                </label>
+            </div>
+            <textarea id="feedback-text" placeholder="Trải nghiệm của bạn thế nào? Chia sẻ ở đây nhé..." required></textarea>
+            <button type="submit" id="submit-feedback-btn">GỬI BÌNH LUẬN</button>
+        </form>
+    </div>
+
     <div id="guide-box">
-        <h3>UPDATE - 59 🛸</h3>
-        <p>developed by <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link">Tung Lam</a></p>
+        <h3>UPDATE - 61 🛸</h3>
+        <p style="margin: 5px 0 2px 0;">last update in 13:43 PM, 20/4</p>
     </div>
 
     <div id="study-toast"></div>
@@ -182,20 +282,34 @@
     </div>
 
     <script>
-        // HÀM PHÁT ÂM THANH TOÀN CỤC
+        function toggleMenu() {
+            const panel = document.getElementById('menu-panel');
+            const overlay = document.getElementById('page-overlay');
+            const hint = document.getElementById('menu-hint');
+
+            if (hint) hint.style.display = 'none';
+
+            if (!panel.classList.contains('open')) { 
+                panel.classList.add('open'); 
+                overlay.style.display = 'block'; 
+            }
+            else { 
+                panel.classList.remove('open'); 
+                overlay.style.display = 'none'; 
+            }
+        }
+
         function playClickSound() {
             const sound = document.getElementById('click-sound');
             if (sound) {
                 sound.currentTime = 0;
-                sound.play().catch(() => {}); // Né lỗi trình duyệt chặn autoplay
+                sound.play().catch(() => {});
             }
         }
 
-        // TỰ ĐỘNG GẮN SOUND CHO NÚT (TRỪ FACEBOOK)
         document.addEventListener('click', (e) => {
             const target = e.target.closest('button, .btn, .timer-btn, .switch, #menu-btn, #room-btn, [onclick]');
             if (target) {
-                // Kiểm tra nếu là link FB hoặc nằm trong link FB thì KHÔNG phát sound
                 const isFB = target.closest('a') && target.closest('a').href.includes('facebook.com');
                 if (!isFB) playClickSound();
             }
@@ -219,11 +333,26 @@
             }
         }
         let matrixInterval = setInterval(drawMatrix, 35);
+        
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const loader = document.getElementById('loader-wrapper');
                 loader.style.opacity = "0";
-                setTimeout(() => { loader.style.display = "none"; clearInterval(matrixInterval); }, 800);
+                setTimeout(() => { 
+                    loader.style.display = "none"; 
+                    clearInterval(matrixInterval); 
+                    
+                    // Thông báo tự ẩn sau 4 giây
+                    const hint = document.getElementById('menu-hint');
+                    if (hint) {
+                        hint.style.display = 'block';
+                        setTimeout(() => {
+                            hint.style.transition = "opacity 0.8s ease";
+                            hint.style.opacity = "0";
+                            setTimeout(() => { hint.style.display = 'none'; }, 800);
+                        }, 4000);
+                    }
+                }, 800);
             }, 2000);
         });
 
@@ -292,15 +421,65 @@
             scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
 
-        function toggleMenu() {
-            const panel = document.getElementById('menu-panel');
-            const overlay = document.getElementById('page-overlay');
-            if (!panel.classList.contains('open')) { panel.classList.add('open'); overlay.style.display = 'block'; }
-            else { panel.classList.remove('open'); overlay.style.display = 'none'; }
-        }
-        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); }
+        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); toggleHowTo(false); toggleFeedbackPopup(false); }
         function toggleEyeCare(cb) { document.getElementById('eye-care-overlay').style.display = cb.checked ? 'block' : 'none'; }
         function toggleAbout(show) { document.getElementById('about-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
+        function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
+
+        // CÁC HÀM XỬ LÝ LOGIC ĐÁNH GIÁ (FEEDBACK) MỚI THÊM VÀO
+        function toggleFeedbackPopup(show) {
+            document.getElementById('feedback-popup').classList.toggle('open', show);
+            document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
+        }
+
+        document.getElementById('feedback-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('feedback-username').value.trim();
+            const rating = document.querySelector('input[name="rating"]:checked').value;
+            const text = document.getElementById('feedback-text').value.trim();
+            
+            db.ref('site_feedbacks').push({
+                username: name,
+                rating: rating,
+                comment: text,
+                time: Date.now()
+            }).then(() => {
+                alert('Gửi đánh giá thành công! Cảm ơn bro nha! 🔥');
+                document.getElementById('feedback-form').reset();
+                toggleFeedbackPopup(false);
+            }).catch((err) => {
+                alert('Gửi lỗi mất rồi bro ơi!');
+                console.error(err);
+            });
+        });
+
+        db.ref('site_feedbacks').orderByChild('time').on('value', function(snapshot) {
+            const container = document.getElementById('feedback-list-container');
+            container.innerHTML = "";
+            if (!snapshot.exists()) {
+                container.innerHTML = `<p style="color:#666; font-size:12px; text-align:center; margin-top:10px;">Chưa có đánh giá nào.</p>`;
+                return;
+            }
+            let list = [];
+            snapshot.forEach(childSnapshot => { list.push(childSnapshot.val()); });
+            list.reverse();
+            
+            let feedbackHTML = "";
+            list.forEach(data => {
+                const icon = data.rating === 'Tốt' ? '😊' : data.rating === 'Ổn' ? '😐' : '😞';
+                feedbackHTML += `
+                    <div class="feedback-item">
+                        <div class="meta-info">
+                            <span class="user-name">👤 ${data.username}</span>
+                            <span>${icon} ${data.rating}</span>
+                        </div>
+                        <div style="color: #ccc; word-break: break-word; line-height: 1.4;">${data.comment}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = feedbackHTML;
+        });
+        // --- HẾT PHẦN CODE ĐÁNH GIÁ MỚI ---
 
         let globalPath = "notes"; 
         function toggleMode() {
@@ -330,13 +509,20 @@
             note.className = 'sticky-note'; note.contentEditable = "true";
             note.style.left = item.x || "100px"; note.style.top = item.y || "100px";
             note.style.width = item.w || "180px"; note.style.height = item.h || "auto";
-            note.style.backgroundColor = item.color || '#fff'; note.innerText = item.text || "";
+            note.style.backgroundColor = item.color || '#fff';
+            
+            const rawText = item.text || "";
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            note.innerHTML = rawText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" contenteditable="false">${url}</a>`);
+
             if (item.image) {
                 const img = document.createElement('img'); img.src = item.image; note.appendChild(img);
             }
+            
             let isDeleting = false;
             note.ondblclick = () => { if(confirm("xác nhận xoá ?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.onblur = () => { if(!isDeleting) db.ref(`${currentPath}/${id}`).update({ text: note.innerText, w: note.style.width, h: note.style.height }); };
+            
             makeDraggable(note, id, currentPath);
             wall.appendChild(note);
         }
@@ -344,6 +530,7 @@
         function makeDraggable(el, id, path) {
             let oX, oY;
             const start = (e) => {
+                if(e.target.tagName === 'A') return; 
                 if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
                 if(document.activeElement === el) return;
                 const cX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -403,18 +590,29 @@
             document.getElementById('timer-display').innerText = h + ":" + m + ":" + s;
         }
         function startTimer() { if (timerInterval) return; timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
+        
         function stopTimer() {
-            if (!timerInterval) return; clearInterval(timerInterval); timerInterval = null;
-            const hours = Math.floor(timerSeconds / 3600);
-            const minutes = Math.floor((timerSeconds % 3600) / 60);
-            const seconds = timerSeconds % 60;
-            const toast = document.getElementById('study-toast');
-            toast.innerText = "Chúc mừng! Bạn đã học được " + hours + "h " + minutes + "m " + seconds + "s 🎉";
-            toast.style.display = 'block'; 
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00ff00', '#00d4ff', '#ffffff', '#ff00ff'] });
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
         }
-        function resetTimer() { stopTimer(); timerSeconds = 0; updateTimerUI(); }
+        
+        function resetTimer() {
+            stopTimer();
+            if (timerSeconds > 0) {
+                const hours = Math.floor(timerSeconds / 3600);
+                const minutes = Math.floor((timerSeconds % 3600) / 60);
+                const seconds = timerSeconds % 60;
+                const toast = document.getElementById('study-toast');
+                toast.innerText = "Tổng thời gian học: " + hours + "h " + minutes + "m " + seconds + "s 🎉";
+                toast.style.display = 'block'; 
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00ff00', '#00d4ff', '#ffffff', '#ff00ff'] });
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            }
+            timerSeconds = 0;
+            updateTimerUI();
+        }
 
         loadNotes();
     </script>
