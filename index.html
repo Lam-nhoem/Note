@@ -124,7 +124,7 @@
         }
         .about-link { color: #00d4ff; text-decoration: none; }
 
-        /* CSS KHU VỰC ĐÁNH GIÁ: Cho phép cuộn độc lập */
+        /* CSS KHU VỰC ĐÁNH GIÁ */
         #feedback-list-container {
             width: 100%; max-height: 220px; overflow-y: auto; margin-top: 10px; padding-right: 5px; border-top: 1px dashed #333;
             box-sizing: border-box; -webkit-overflow-scrolling: touch; position: relative; z-index: 8100;
@@ -132,16 +132,18 @@
         #feedback-list-container::-webkit-scrollbar { width: 4px; }
         #feedback-list-container::-webkit-scrollbar-thumb { background: #00ff00; border-radius: 10px; }
         
-        .feedback-item { background: rgba(255, 255, 255, 0.04); border-left: 3px solid #00ff00; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 13px; }
-        .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; }
-        .feedback-item .user-name { color: #00ff00; font-weight: bold; }
+        /* Thêm hiệu ứng trỏ chuột để nhận biết có thể tương tác xóa */
+        .feedback-item { background: rgba(255, 255, 255, 0.04); border-left: 3px solid #00ff00; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .feedback-item:hover { background: rgba(255, 255, 255, 0.08); }
+        .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; pointer-events: none; }
+        .feedback-item .user-name { color: #00ff00; font-weight: bold; pointer-events: none; }
 
         /* POPUP GỬI Ý KIẾN ĐÁNH GIÁ */
         #feedback-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px; 
             z-index: 10005; opacity: 0; visibility: hidden; transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-sizing: border-box;
         }
         #feedback-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
@@ -382,9 +384,8 @@
         let initialDistance = null, initialScale = 1;
         const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
 
-        /* CẬP NHẬT CHỖ NÀY: Ngăn chặn viewport kéo bảng nếu đang tương tác trong hộp đánh giá */
         const handleStart = (e) => {
-            if (e.target.closest('#feedback-list-container')) return; // Cho phép cuộn tự nhiên, không chiếm quyền
+            if (e.target.closest('#feedback-list-container')) return; 
             if(e.touches && e.touches.length === 2) {
                 isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return;
             }
@@ -395,9 +396,8 @@
             startX = cX - wallLeft; startY = cY - wallTop;
         };
 
-        /* CẬP NHẬT CHỖ NÀY: Ngăn chặn viewport di chuyển bảng khi tay đang vuốt danh sách đánh giá */
         const handleMove = (e) => {
-            if (e.target.closest('#feedback-list-container')) return; // Bỏ qua, để hộp đánh giá tự cuộn dọc
+            if (e.target.closest('#feedback-list-container')) return; 
             if (e.touches && e.touches.length === 2) {
                 e.preventDefault();
                 const currentDistance = getDistance(e.touches);
@@ -424,7 +424,7 @@
         window.addEventListener('touchend', handleEnd);
 
         window.addEventListener('wheel', (e) => {
-            if (e.target.closest('#feedback-list-container')) return; // Thêm chỗ này: Cuộn chuột trong feedback không bị zoom viewport
+            if (e.target.closest('#feedback-list-container')) return; 
             e.preventDefault(); scale -= e.deltaY * 0.001;
             scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
@@ -460,6 +460,23 @@
             });
         });
 
+        /* HÀM XÓA BÌNH LUẬN DÀNH RIÊNG CHO ADMIN */
+        function deleteFeedback(feedbackId) {
+            const password = prompt("Nhập mật mã Admin để xóa đánh giá này:");
+            if (password === null) return; // Người dùng ấn Hủy
+            
+            if (password === "1234") { // <--- BRO CÓ THỂ ĐỔI MẬT KHẨU Ở ĐÂY NHA
+                if (confirm("Xác nhận xóa vĩnh viễn đánh giá này?")) {
+                    db.ref(`site_feedbacks/${feedbackId}`).remove()
+                        .then(() => alert("Đã xóa bình luận thành công!"))
+                        .catch(() => alert("Lỗi kết nối Firebase, không xóa được rồi bro!"));
+                }
+            } else {
+                alert("Sai mật mã Admin rồi bro ơi! Đừng phá nha 🤫");
+            }
+        }
+
+        /* CẬP NHẬT CHỖ NÀY: Lấy ID từ Firebase để gắn sự kiện nhấp đúp (ondblclick) xóa */
         db.ref('site_feedbacks').orderByChild('time').on('value', function(snapshot) {
             const container = document.getElementById('feedback-list-container');
             container.innerHTML = "";
@@ -467,24 +484,37 @@
                 container.innerHTML = `<p style="color:#666; font-size:12px; text-align:center; margin-top:10px;">Chưa có đánh giá nào.</p>`;
                 return;
             }
+            
             let list = [];
-            snapshot.forEach(childSnapshot => { list.push(childSnapshot.val()); });
+            snapshot.forEach(childSnapshot => { 
+                list.push({
+                    id: childSnapshot.key, // Lấy ID của node bình luận
+                    data: childSnapshot.val()
+                }); 
+            });
             list.reverse();
             
-            let feedbackHTML = "";
-            list.forEach(data => {
+            container.innerHTML = "";
+            list.forEach(item => {
+                const data = item.data;
                 const icon = data.rating === 'Tốt' ? '😊' : data.rating === 'Ổn' ? '😐' : '😞';
-                feedbackHTML += `
-                    <div class="feedback-item">
-                        <div class="meta-info">
-                            <span class="user-name">👤 ${data.username}</span>
-                            <span>${icon} ${data.rating}</span>
-                        </div>
-                        <div style="color: #ccc; word-break: break-word; line-height: 1.4;">${data.comment}</div>
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "feedback-item";
+                itemDiv.title = "Nhấp đúp chuột để xóa (Admin Only)";
+                
+                // Gắn sự kiện nhấp đúp để kích hoạt trình xóa bí mật
+                itemDiv.ondblclick = () => deleteFeedback(item.id);
+                
+                itemDiv.innerHTML = `
+                    <div class="meta-info">
+                        <span class="user-name">👤 ${data.username}</span>
+                        <span>${icon} ${data.rating}</span>
                     </div>
+                    <div style="color: #ccc; word-break: break-word; line-height: 1.4;">${data.comment}</div>
                 `;
+                container.appendChild(itemDiv);
             });
-            container.innerHTML = feedbackHTML;
         });
 
         let globalPath = "notes"; 
