@@ -555,8 +555,8 @@
                     <div style="color: #ccc; word-break: break-word; line-height: 1.4;">${data.comment}</div>
                     
                     <div class="feedback-reactions">
-                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'heart', event)">❤️ <span>${heartCount}</span></button>
-                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'wow', event)">😮 <span>${wowCount}</span></button>
+                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'like', event)">👍 <span>${heartCount}</span></button>
+                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'unlike', event)">👎 <span>${wowCount}</span></button>
                         <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'fire', event)">🔥 <span>${fireCount}</span></button>
                     </div>
                 `;
@@ -612,7 +612,7 @@
 
         function makeDraggable(el, id, path) {
             let oX, oY;
-            // Phần xử lý makeDraggable logic cũ của ông...
+            // Phần xử lý makeDraggable logic cũ 
         }
     </script>
 </body>
