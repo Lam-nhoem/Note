@@ -223,7 +223,7 @@
             <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi</h4>
         </div>
         <div class="menu-section" style="border-bottom: none;">
-            <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleFeedbackPopup(true)">💬 Đánh giá</h4>
+            <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleFeedbackPopup(true)">Đánh giá 💬</h4>
             <div id="feedback-list-container">
                 <p style="color: #666; font-size: 12px; text-align: center; margin-top: 10px;">Đang tải đánh giá...</p>
             </div>
@@ -242,6 +242,8 @@
             <p> <b>Sửa nội dung:</b> Nhấn trực tiếp vào nội dung trên tờ Note để sửa.</p>
             <p> <b>Xóa Note:</b> Nhấn đúp (Double click) vào tờ Note để xóa.</p>
             <p> <b>Phòng cá nhân:</b> Nhấn nút "Phòng" để chuyển sang chế độ riêng tư (cần nhập Mã ID).</p>
+            <p> <b>Feedback:</b> Hãy để lại đánh giá về trải nghiệm, những điều bạn muốn đóng góp, hay mong muốn chúng tôi thay đổi ...</p>
+
         </div>
     </div>
 
@@ -491,7 +493,7 @@
 
         /* HÀM XÓA BÌNH LUẬN DÀNH RIÊNG CHO ADMIN */
         function deleteFeedback(feedbackId) {
-            const password = prompt("Nhập mật mã Admin để xóa đánh giá này:");
+            const password = prompt("Nhập mật mã admin để xóa");
             if (password === null) return; 
             
             if (password === "18082612") { 
