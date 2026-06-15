@@ -14,14 +14,12 @@
         #loader-wrapper {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: #000; z-index: 20000; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center;
-            transition: opacity 0.8s ease-out;
+            justify-content: center; align-items: center; transition: opacity 0.8s ease-out;
         }
         #matrix-canvas { position: absolute; top: 0; left: 0; }
         #loader-text {
             position: relative; color: #00ff00; font-family: monospace; font-size: 20px;
-            text-shadow: 0 0 10px #00ff00; z-index: 20001; font-weight: bold;
-            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ff00; z-index: 20001; font-weight: bold; letter-spacing: 2px;
         }
 
         #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
@@ -31,15 +29,12 @@
         #menu-hint {
             position: fixed; top: 25px; right: 75px; 
             background: #00ff00; color: #000; padding: 6px 12px; 
-            border-radius: 8px; font-size: 12px; font-weight: bold;
-            z-index: 8500; animation: bounceHint 2s infinite;
-            pointer-events: none; display: none;
+            border-radius: 8px; font-size: 12px; font-weight: bold; z-index: 8500;
+            animation: bounceHint 2s infinite; pointer-events: none; display: none;
         }
         #menu-hint::after {
-            content: ''; position: absolute; right: -8px; top: 50%;
-            transform: translateY(-50%);
-            border-top: 6px solid transparent; border-bottom: 6px solid transparent;
-            border-left: 8px solid #00ff00;
+            content: ''; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+            border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid #00ff00;
         }
         @keyframes bounceHint {
             0%, 100% { transform: translateX(0); }
@@ -47,12 +42,9 @@
         }
         
         .admin-link { 
-            background: linear-gradient(90deg, #00ff00, #00d4ff, #00ffbc, #00ff00);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none; font-weight: bold;
-            animation: moveGradient 4s linear infinite;
+            background: linear-gradient(90deg, #00ff00, #00d4ff, #00ffbc, #00ff00); background-size: 300% 300%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none; font-weight: bold; animation: moveGradient 4s linear infinite;
         }
         @keyframes moveGradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
@@ -65,19 +57,18 @@
             color: #000; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
             font-size: 14px; outline: none; word-wrap: break-word; z-index: 100; 
             overflow: hidden; resize: both; display: flex; flex-direction: column;
+            transition: opacity 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
         }
         
         .sticky-note a { color: #0056b3 !important; text-decoration: underline !important; font-weight: bold; word-break: break-all; cursor: pointer !important; position: relative; z-index: 101; }
-        .sticky-note img { 
-            width: 100%; height: auto; flex-shrink: 1; object-fit: contain;border-radius: 5px; margin-top: 8px; pointer-events: none; 
-        }
+        .sticky-note img { width: 100%; height: auto; flex-shrink: 1; object-fit: contain; border-radius: 5px; margin-top: 8px; pointer-events: none; }
 
         #menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 10px; z-index: 9000; }
         
         #menu-panel { 
             position: fixed; top: 0; right: -300px; width: 260px; height: 100vh; 
-            background: rgba(15, 15, 15, 0.98); border-left: 1px solid #333; 
-            z-index: 8000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 20px 20px; 
+            background: rgba(15, 15, 15, 0.98); border-left: 1px solid #333; z-index: 8000;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 20px 20px; 
             box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         #menu-panel.open { right: 0 !important; }
@@ -87,9 +78,8 @@
 
         #about-popup, #how-to-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
-            width: 340px; max-height: 80vh; overflow-y: auto;
-            background: #1e1e1e; border: 2px solid #00ff00; border-radius: 15px; padding: 25px; 
-            z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; 
+            width: 340px; max-height: 80vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00;
+            border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
         #about-popup.open, #how-to-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
@@ -104,8 +94,13 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         #dock { position: fixed; bottom: 0; width: 100%; height: 110px; background: rgba(15, 15, 15, 0.95); border-top: 1px solid #333; display: flex; justify-content: center; align-items: center; gap: 8px; z-index: 1000; }
+        
+        /* CSS CHO Ô INPUT TÌM KIẾM MỚI Ở DOCK */
         #user-id-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 65px; text-align: center; font-size: 12px; }
-        #note-input { width: 110px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; }
+        #search-note-input { background: #222; border: 1px solid #444; color: #00ff00; padding: 6px; border-radius: 5px; width: 100px; font-size: 12px; outline: none; transition: border-color 0.2s; }
+        #search-note-input:focus { border-color: #00ff00; }
+        
+        #note-input { width: 110px; height: 60px; border-radius: 5px; border: none; padding: 8px; font-size: 14px; resize: none; outline: none; }
         .btn { border: none; font-weight: bold; border-radius: 5px; height: 60px; cursor: pointer; }
         #add-btn { background: #fff; color: #000; padding: 0 15px; }
         #img-btn { background: #333; color: #fff; padding: 0 10px; font-size: 20px; border: 1px solid #555; }
@@ -117,10 +112,8 @@
         .timer-btn { background: #222; border: 1px solid #555; color: white; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
         
         #study-toast {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px;
-            border-radius: 15px; font-weight: bold; font-size: 18px; z-index: 3000;
-            display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 255, 0, 0.9); color: black; padding: 20px 30px; border-radius: 15px;
+            font-weight: bold; font-size: 18px; z-index: 3000; display: none; text-align: center; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
         .about-link { color: #00d4ff; text-decoration: none; }
 
@@ -137,42 +130,11 @@
         .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; pointer-events: none; }
         .feedback-item .user-name { color: #00ff00; font-weight: bold; pointer-events: none; }
 
-        /* CSS MỚI: HỆ THỐNG THẢ ICON FEEDBACK */
-        .feedback-reactions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-            padding-top: 6px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.05);
-        }
-        .reaction-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #333;
-            color: #aaa;
-            border-radius: 20px;
-            padding: 3px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .reaction-btn:hover {
-            background: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #fff;
-        }
-        .reaction-btn:active {
-            transform: scale(0.9);
-        }
-
-        /* POPUP GỬI Ý KIẾN ĐÁNH GIÁ */
+        /* POPUP GỢI Ý Ý KIẾN ĐÁNH GIÁ */
         #feedback-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
-            width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px; 
-            z-index: 10005; opacity: 0; visibility: hidden; transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-sizing: border-box;
+            width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px;
+            z-index: 10005; opacity: 0; visibility: hidden; transition: 0.3s; box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); box-sizing: border-box;
         }
         #feedback-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
@@ -220,7 +182,7 @@
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleHowTo(true)">Hướng dẫn sử dụng 📖</h4>
         </div>
         <div class="menu-section">
-            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi</h4>
+            <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi ⓘ</h4>
         </div>
         <div class="menu-section" style="border-bottom: none;">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleFeedbackPopup(true)">Đánh giá 💬</h4>
@@ -243,15 +205,13 @@
             <p> <b>Xóa Note:</b> Nhấn đúp (Double click) vào tờ Note để xóa.</p>
             <p> <b>Phòng cá nhân:</b> Nhấn nút "Phòng" để chuyển sang chế độ riêng tư (cần nhập Mã ID).</p>
             <p> <b>Feedback:</b> Hãy để lại đánh giá về trải nghiệm, những điều bạn muốn đóng góp, hay mong muốn chúng tôi thay đổi ...</p>
-
         </div>
     </div>
 
     <div id="about-popup">
         <span onclick="toggleAbout(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Về chúng tôi</h3>
-        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập... Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và trong quá trình phát triển bản thân !
-        </p>
+        <p style="font-size: 13px; line-height: 1.5; color: white; text-align: justify; margin-bottom: 15px;">Xin chào! Free Note là một sản phẩm được chúng mình lấy ý tưởng và phát triển từ các trang, các diễn đàn chia sẻ kiến thức, bài tập, hay kinh nghiệm học tập... Hy vọng web của bọn mình có thể hỗ trợ các bạn trong việc học tập và trong quá trình phát triển bản thân !</p>
         <div style="font-size: 13px; line-height: 1.6;">
             <p><strong>Nhà phát triển chính 🛠️:</strong><br>
                 <a href="https://www.facebook.com/profile.php?id=61585891402987" target="_blank" class="admin-link" style="font-size: 14px;">Lê Hoàng Tùng Lâm</a>
@@ -271,7 +231,7 @@
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Gửi Đánh Giá Của Bạn</h3>
         
         <form id="feedback-form">
-            <input type="text" id="feedback-username" placeholder="Biệt danh / Tên của bạn (có thể đặt là ẩn danh nếu muốn)" required>
+            <input type="text" id="feedback-username" placeholder="Biệt danh / Tên của bạn..." required>
             <div class="rating-group">
                 <label class="rating-btn">
                     <input type="radio" name="rating" value="Tệ" required>
@@ -292,8 +252,8 @@
     </div>
 
     <div id="guide-box">
-        <h3>UPDATE - 62 🛸</h3>
-        <p style="margin: 5px 0 2px 0;">last update in 22:22 19/05</p>
+        <h3>UPDATE - 61 🛸</h3>
+        <p style="margin: 5px 0 2px 0;">last update in 17:47, 21/05</p>
     </div>
 
     <div id="study-toast"></div>
@@ -310,10 +270,13 @@
         </div>
         <div id="room-btn" onclick="toggleMode()">Phòng <br> <span id="room-status" style="color: #00ff00;">CÔNG CỘNG</span></div>
         <div class="input-group"><input type="text" id="user-id-input" placeholder="Mã ID"></div>
+        
+        <div class="input-group"><input type="text" id="search-note-input" placeholder="🔍 Tìm note..." oninput="searchNotes()"></div>
+        
         <textarea id="note-input" placeholder="Viết..."></textarea>
         <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="uploadImage(this)">
         <button id="img-btn" class="btn" onclick="document.getElementById('file-input').click()">🖼️</button>
-        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none;">
+        <input type="color" id="color-picker" value="#ffffff" style="width: 35px; height: 35px; border:none; cursor: pointer;">
         <button id="add-btn" class="btn" onclick="sendToCloud()">DÁN</button>
     </div>
 
@@ -322,14 +285,11 @@
             const panel = document.getElementById('menu-panel');
             const overlay = document.getElementById('page-overlay');
             const hint = document.getElementById('menu-hint');
-
             if (hint) hint.style.display = 'none';
-
             if (!panel.classList.contains('open')) { 
                 panel.classList.add('open'); 
                 overlay.style.display = 'block'; 
-            }
-            else { 
+            } else { 
                 panel.classList.remove('open'); 
                 overlay.style.display = 'none'; 
             }
@@ -337,10 +297,7 @@
 
         function playClickSound() {
             const sound = document.getElementById('click-sound');
-            if (sound) {
-                sound.currentTime = 0;
-                sound.play().catch(() => {});
-            }
+            if (sound) { sound.currentTime = 0; sound.play().catch(() => {}); }
         }
 
         document.addEventListener('click', (e) => {
@@ -354,7 +311,7 @@
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*yeutquynh";
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
         const fontSize = 16;
         const columns = canvas.width / fontSize;
         const drops = Array(Math.floor(columns)).fill(1);
@@ -369,21 +326,17 @@
             }
         }
         let matrixInterval = setInterval(drawMatrix, 35);
-        
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const loader = document.getElementById('loader-wrapper');
                 loader.style.opacity = "0";
                 setTimeout(() => { 
-                    loader.style.display = "none"; 
-                    clearInterval(matrixInterval); 
-                    
+                    loader.style.display = "none"; clearInterval(matrixInterval); 
                     const hint = document.getElementById('menu-hint');
                     if (hint) {
                         hint.style.display = 'block';
                         setTimeout(() => {
-                            hint.style.transition = "opacity 0.8s ease";
-                            hint.style.opacity = "0";
+                            hint.style.transition = "opacity 0.8s ease"; hint.style.opacity = "0";
                             setTimeout(() => { hint.style.display = 'none'; }, 800);
                         }, 4000);
                     }
@@ -409,66 +362,48 @@
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
         let wallLeft = 0, wallTop = 0, scale = 1, isPanning = false, startX, startY;
-
         function updateWallTransform() { wall.style.transform = `translate(${wallLeft}px, ${wallTop}px) scale(${scale})`; }
 
         let initialDistance = null, initialScale = 1;
         const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
-
         const handleStart = (e) => {
-            if (e.target.closest('#feedback-list-container')) return; 
-            if(e.touches && e.touches.length === 2) {
-                isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return;
-            }
+            if (e.target.closest('#feedback-list-container')) return;
+            if(e.touches && e.touches.length === 2) { isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return; }
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
             startX = cX - wallLeft; startY = cY - wallTop;
         };
-
         const handleMove = (e) => {
-            if (e.target.closest('#feedback-list-container')) return; 
+            if (e.target.closest('#feedback-list-container')) return;
             if (e.touches && e.touches.length === 2) {
-                e.preventDefault();
-                const currentDistance = getDistance(e.touches);
-                if (initialDistance) {
-                    const delta = currentDistance / initialDistance;
-                    scale = Math.min(Math.max(0.1, initialScale * delta), 4);
-                    updateWallTransform();
-                }
+                e.preventDefault(); const currentDistance = getDistance(e.touches);
+                if (initialDistance) { const delta = currentDistance / initialDistance; scale = Math.min(Math.max(0.1, initialScale * delta), 4); updateWallTransform(); }
                 return;
             }
             if (!isPanning) return;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            wallLeft = cX - startX; wallTop = cY - startY;
-            updateWallTransform();
+            wallLeft = cX - startX; wallTop = cY - startY; updateWallTransform();
         };
         const handleEnd = () => { isPanning = false; initialDistance = null; };
-
         viewport.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
         viewport.addEventListener('touchstart', handleStart, {passive: false});
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
-
         window.addEventListener('wheel', (e) => {
             if (e.target.closest('#feedback-list-container')) return; 
-            e.preventDefault(); scale -= e.deltaY * 0.001;
-            scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
+            e.preventDefault(); scale -= e.deltaY * 0.001; scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
 
         function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); toggleHowTo(false); toggleFeedbackPopup(false); }
         function toggleEyeCare(cb) { document.getElementById('eye-care-overlay').style.display = cb.checked ? 'block' : 'none'; }
         function toggleAbout(show) { document.getElementById('about-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
-
-        function toggleFeedbackPopup(show) {
-            document.getElementById('feedback-popup').classList.toggle('open', show);
-            document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
-        }
+        function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
         document.getElementById('feedback-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -476,91 +411,37 @@
             const rating = document.querySelector('input[name="rating"]:checked').value;
             const text = document.getElementById('feedback-text').value.trim();
             
-            db.ref('site_feedbacks').push({
-                username: name,
-                rating: rating,
-                comment: text,
-                time: Date.now()
-            }).then(() => {
-                alert('GỬI ĐÁNH GIÁ THÀNH CÔNG !');
-                document.getElementById('feedback-form').reset();
-                toggleFeedbackPopup(false);
-            }).catch((err) => {
-                alert('<ERORR> LỖI !');
-                console.error(err);
-            });
+            db.ref('site_feedbacks').push({ username: name, rating: rating, comment: text, time: Date.now() }).then(() => {
+                alert('Gửi đánh giá thành công! Cảm ơn bro nha! 🔥'); document.getElementById('feedback-form').reset(); toggleFeedbackPopup(false);
+            }).catch((err) => { alert('Gửi lỗi mất rồi bro ơi!'); console.error(err); });
         });
 
-        /* HÀM XÓA BÌNH LUẬN DÀNH RIÊNG CHO ADMIN */
         function deleteFeedback(feedbackId) {
-            const password = prompt("Nhập mật mã admin để xóa");
-            if (password === null) return; 
-            
+            const password = prompt("Nhập mật mã admin để xóa"); if (password === null) return; 
             if (password === "18082612") { 
-                if (confirm("Xác nhận xóa ?")) {
-                    db.ref(`site_feedbacks/${feedbackId}`).remove()
-                        .then(() => alert("Đã xóa thành công!"))
-                        .catch(() => alert("Lỗi kết nối Firebase, không xóa được !"));
-                }
-            } else {
-                alert("<ERORR> sai password !");
-            }
+                if (confirm("Xác nhận xóa vĩnh viễn đánh giá này?")) { db.ref(`site_feedbacks/${feedbackId}`).remove().then(() => alert("Đã xóa bình luận thành công!")).catch(() => alert("Lỗi kết nối Firebase, không xóa được !")); }
+            } else { alert("<<ERORR>> sai mật khẩu !"); }
         }
 
-        /* HÀM THẢ ICON CHO BÌNH LUẬN (REALTIME TRANSACTION) */
-        function reactToFeedback(feedbackId, reactionType, event) {
-            if (event) event.stopPropagation(); // Không kích hoạt ondblclick của Admin
-            const reactionRef = db.ref(`site_feedbacks/${feedbackId}/reactions/${reactionType}`);
-            reactionRef.transaction((currentCount) => {
-                return (currentCount || 0) + 1;
-            });
-        }
-
-        /* REALTIME LISTENER: Tải bình luận kèm hệ thống icon tương tác */
         db.ref('site_feedbacks').orderByChild('time').on('value', function(snapshot) {
-            const container = document.getElementById('feedback-list-container');
-            container.innerHTML = "";
-            if (!snapshot.exists()) {
-                container.innerHTML = `<p style="color:#666; font-size:12px; text-align:center; margin-top:10px;">Chưa có đánh giá nào.</p>`;
-                return;
-            }
+            const container = document.getElementById('feedback-list-container'); container.innerHTML = "";
+            if (!snapshot.exists()) { container.innerHTML = `<p style="color:#666; font-size:12px; text-align:center; margin-top:10px;">Chưa có đánh giá nào.</p>`; return; }
             
-            let list = [];
-            snapshot.forEach(childSnapshot => { 
-                list.push({
-                    id: childSnapshot.key, 
-                    data: childSnapshot.val()
-                }); 
-            });
-            list.reverse();
+            let list = []; snapshot.forEach(childSnapshot => { list.push({ id: childSnapshot.key, data: childSnapshot.val() }); });
+            list.reverse(); container.innerHTML = "";
             
-            container.innerHTML = "";
             list.forEach(item => {
                 const data = item.data;
                 const icon = data.rating === 'Tốt' ? '😊' : data.rating === 'Ổn' ? '😐' : '😞';
-                
-                const heartCount = (data.reactions && data.reactions.heart) || 0;
-                const wowCount = (data.reactions && data.reactions.wow) || 0;
-                const fireCount = (data.reactions && data.reactions.fire) || 0;
-                
                 const itemDiv = document.createElement('div');
-                itemDiv.className = "feedback-item";
-                itemDiv.title = "Nhấp đúp chuột để xóa (Admin Only)";
-                
+                itemDiv.className = "feedback-item"; itemDiv.title = "Nhấp đúp chuột để xóa (chỉ dành cho admin)";
                 itemDiv.ondblclick = () => deleteFeedback(item.id);
-                
                 itemDiv.innerHTML = `
                     <div class="meta-info">
                         <span class="user-name">👤 ${data.username}</span>
                         <span>${icon} ${data.rating}</span>
                     </div>
                     <div style="color: #ccc; word-break: break-word; line-height: 1.4;">${data.comment}</div>
-                    
-                    <div class="feedback-reactions">
-                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'like', event)">👍 <span>${heartCount}</span></button>
-                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'unlike', event)">👎 <span>${wowCount}</span></button>
-                        <button class="reaction-btn" onclick="reactToFeedback('${item.id}', 'fire', event)">🔥 <span>${fireCount}</span></button>
-                    </div>
                 `;
                 container.appendChild(itemDiv);
             });
@@ -568,8 +449,7 @@
 
         let globalPath = "notes"; 
         function toggleMode() {
-            const status = document.getElementById('room-status');
-            const timerUI = document.getElementById('timer-container'); 
+            const status = document.getElementById('room-status'); const timerUI = document.getElementById('timer-container'); 
             const isToPrivate = (status.innerText === 'CÔNG CỘNG');
             status.innerText = isToPrivate ? 'CÁ NHÂN' : 'CÔNG CỘNG';
             status.style.color = isToPrivate ? '#ff00ff' : '#00ff00';
@@ -583,9 +463,10 @@
             if (globalPath) db.ref(globalPath).off();
             globalPath = (document.getElementById('room-status').innerText === 'CÁ NHÂN') ? `notes/private/${typedId}` : 'notes';
             db.ref(globalPath).on('value', (snapshot) => {
-                wall.innerHTML = "";
-                const data = snapshot.val();
+                wall.innerHTML = ""; const data = snapshot.val();
                 if(data) Object.keys(data).forEach(id => { if (id !== 'private') renderNote(id, data[id], globalPath); });
+                // Giữ bộ lọc tìm kiếm realtime mỗi khi Firebase đồng bộ dữ liệu mới về
+                searchNotes();
             });
         }
 
@@ -596,26 +477,123 @@
             note.style.width = item.w || "180px"; note.style.height = item.h || "auto";
             note.style.backgroundColor = item.color || '#fff';
             
-            const rawText = item.text || "";
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const rawText = item.text || ""; const urlRegex = /(https?:\/\/[^\s]+)/g;
             note.innerHTML = rawText.replace(urlRegex, (url) => `<a href="${url}" target="_blank" contenteditable="false">${url}</a>`);
-
-            if (item.image) {
-                const img = document.createElement('img'); img.src = item.image; note.appendChild(img);
-            }
+            if (item.image) { const img = document.createElement('img'); img.src = item.image; note.appendChild(img); }
             
             let isDeleting = false;
             note.ondblclick = () => { if(confirm("xác nhận xoá ?")) { isDeleting = true; db.ref(`${currentPath}/${id}`).remove().then(() => note.remove()); } };
             note.onblur = () => { if(!isDeleting) db.ref(`${currentPath}/${id}`).update({ text: note.innerText, w: note.style.width, h: note.style.height }); };
             
-            makeDraggable(note, id, currentPath);
-            wall.appendChild(note);
+            makeDraggable(note, id, currentPath); wall.appendChild(note);
+        }
+
+        /* THUẬT TOÁN TÌM KIẾM THEO NGỮ NGHĨA CHUỖI (REALTIME FILTER) */
+        function searchNotes() {
+            const keyword = document.getElementById('search-note-input').value.toLowerCase().trim();
+            const allNotes = document.querySelectorAll('.sticky-note');
+            
+            allNotes.forEach(note => {
+                const noteText = note.innerText.toLowerCase();
+                
+                if (keyword === "") {
+                    // Trả giao diện về mặc định khi ô tìm kiếm trống
+                    note.style.display = "flex";
+                    note.style.opacity = "1";
+                    note.style.border = "none";
+                    note.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)";
+                } else if (noteText.includes(keyword)) {
+                    // Note khớp từ khóa: Tạo hiệu ứng viền phát sáng xanh Neon Cyberpunk
+                    note.style.display = "flex";
+                    note.style.opacity = "1";
+                    note.style.border = "2px solid #00ff00";
+                    note.style.boxShadow = "0 0 15px #00ff00";
+                } else {
+                    // Note không khớp: Làm mờ hẳn đi để làm nổi bật kết quả tìm kiếm
+                    note.style.opacity = "0.15";
+                    note.style.border = "none";
+                    note.style.boxShadow = "none";
+                }
+            });
         }
 
         function makeDraggable(el, id, path) {
             let oX, oY;
-            // Phần xử lý makeDraggable logic cũ 
+            const start = (e) => {
+                if(e.target.tagName === 'A') return;
+                if(e.offsetX > el.offsetWidth - 20 && e.offsetY > el.offsetHeight - 20) return;
+                if(document.activeElement === el) return;
+                const cX = e.touches ? e.touches[0].clientX : e.clientX;
+                const cY = e.touches ? e.touches[0].clientY : e.clientY;
+                oX = cX - el.offsetLeft; oY = cY - el.offsetTop;
+                const move = (ev) => {
+                    const mX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+                    const mY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+                    el.style.left = (mX - oX) + 'px'; el.style.top = (mY - oY) + 'px';
+                };
+                const stop = () => {
+                    db.ref(`${path}/${id}`).update({ x: el.style.left, y: el.style.top });
+                    window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', stop);
+                    window.removeEventListener('touchmove', move); window.removeEventListener('touchend', stop);
+                };
+                window.addEventListener(e.touches ? 'touchmove' : 'mousemove', move);
+                window.addEventListener(e.touches ? 'touchend' : 'mouseup', stop);
+            };
+            el.addEventListener('mousedown', start); el.addEventListener('touchstart', start);
         }
+
+        function uploadImage(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image(); img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const maxW = 400;
+                    canvas.width = maxW; canvas.height = img.height * (maxW / img.width);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    db.ref(globalPath).push({
+                        text: "Hình ảnh", image: canvas.toDataURL('image/jpeg', 0.6),
+                        x: (Math.abs(wallLeft) + 200) / scale + 'px', y: (Math.abs(wallTop) + 200) / scale + 'px',
+                        w: "200px", h: "auto", color: document.getElementById('color-picker').value
+                    });
+                    input.value = "";
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function sendToCloud() {
+            const input = document.getElementById('note-input'); if (!input.value.trim()) return;
+            db.ref(globalPath).push({
+                text: input.value,
+                x: (Math.abs(wallLeft) + 150) / scale + 'px', y: (Math.abs(wallTop) + 150) / scale + 'px',
+                w: "180px", h: "auto", color: document.getElementById('color-picker').value
+            }).then(() => { input.value = ""; });
+        }
+
+        let timerSeconds = 0, timerInterval = null;
+        function updateTimerUI() {
+            const h = Math.floor(timerSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((timerSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = h + ":" + m + ":" + s;
+        }
+        function startTimer() { if (timerInterval) return; timerInterval = setInterval(() => { timerSeconds++; updateTimerUI(); }, 1000); }
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+        
+        function resetTimer() {
+            stopTimer();
+            if (timerSeconds > 0) {
+                const hours = Math.floor(timerSeconds / 3600); const minutes = Math.floor((timerSeconds % 3600) / 60); const seconds = timerSeconds % 60;
+                const toast = document.getElementById('study-toast');
+                toast.innerText = "Tổng thời gian học: " + hours + "h " + minutes + "m " + seconds + "s 🎉"; toast.style.display = 'block'; 
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00ff00', '#00d4ff', '#ffffff', '#ff00ff'] });
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            }
+            timerSeconds = 0; updateTimerUI();
+        }
+
+        loadNotes();
     </script>
 </body>
 </html>
