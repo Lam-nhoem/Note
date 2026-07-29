@@ -208,7 +208,7 @@
             z-index: 1;
         }
 
-        /* VÙNG GÕ VĂN BẢN - THÊM DÒNG KẺ MÀU ĐEN MỜ NHƯ TẬP HỌC SINH */
+        /* DÒNG KẺ TẬP SẮC NÉT - FIX LỖI ẨN DÒNG KẺ */
         .page-editor {
             width: 100%;
             flex-grow: 1;
@@ -217,24 +217,27 @@
             word-break: break-word;
             white-space: pre-wrap;
             overflow-y: auto;
-            color: #000;
-            font-size: 13px;
-            line-height: 24px; /* Chiều cao mỗi dòng chữ */
-            background: #fff;
+            color: #000000;
+            font-size: 14px;
+            line-height: 26px; /* Khoảng cách dòng chữ */
+            background-color: #ffffff;
             
-            /* TẠO ĐƯỜNG KẺ NGANG MÀU ĐEN MỜ MỖI 24px */
-            background-image: linear-gradient(transparent 23px, rgba(0, 0, 0, 0.15) 24px);
-            background-size: 100% 24px;
-            
+            /* TẠO ĐƯỜNG KẺ NGANG MÀU ĐEN MỜ RÕ RÀNG */
+            background-image: repeating-linear-gradient(
+                transparent,
+                transparent 25px,
+                rgba(0, 0, 0, 0.25) 25px,
+                rgba(0, 0, 0, 0.25) 26px
+            );
+            background-attachment: local;
             border: none;
             box-sizing: border-box;
-            padding-right: 4px;
+            padding: 0 4px;
         }
 
-        /* Decor thanh cuộn bên trong tờ giấy */
+        /* Thanh cuộn tinh tế cho trang vở */
         .page-editor::-webkit-scrollbar { width: 5px; }
-        .page-editor::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        .page-editor::-webkit-scrollbar-thumb:hover { background: #888; }
+        .page-editor::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
 
         .page-footer {
             width: 100%;
@@ -527,7 +530,7 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* SỔ TAY CHỐNG TRÀN VÀ XUỐNG DÒNG MƯỢT CÓ DÒNG KẺ NGANG */
+        /* SỔ TAY CÓ DÒNG KẺ NGANG ĐEN MỜ CHUẨN */
         let currentPPTPageIndex = 1;
         const maxNotebookPages = 1000;
         let isNotebookInited = false;
