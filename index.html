@@ -152,25 +152,54 @@
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* CSS KHUNG CHỨA SỔ TAY CHUẨN ĐÃ FIX HOÀN TOÀN TRÀN DỌC */
+        /* FIX TRIỆT ĐỂ KHUNG CONTAINER CHO PAGE-FLIP */
         #book-wrapper {
-            width: 280px; height: 360px; margin: 10px auto; position: relative; overflow: hidden;
+            width: 280px;
+            height: 360px;
+            margin: 10px auto;
+            position: relative;
+            overflow: hidden;
+            display: block;
         }
-        #my-book {
-            width: 280px !important; height: 360px !important; position: relative; display: block; margin: 0 auto;
+        
+        /* CÁCH LY HOÀN TOÀN TẤT CẢ CÁC TRANG CỦA NOTEBOOK */
+        .my-page {
+            width: 280px !important;
+            height: 360px !important;
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            padding: 15px !important;
+            box-sizing: border-box !important;
+            border: 1px solid #ccc !important;
+            position: relative !important;
+            display: block !important;
+            float: none !important;
         }
-        .page {
-            width: 280px !important; height: 360px !important;
-            background-color: #fff; color: #000; padding: 15px; box-sizing: border-box;
-            border: 1px solid #ccc; font-size: 13px; line-height: 1.5; position: relative; overflow: hidden;
-        }
+
         .page-editor {
-            width: 100%; height: 290px; outline: none; word-break: break-word; overflow-y: auto; color: #000;
+            width: 100%;
+            height: 290px;
+            outline: none;
+            word-break: break-word;
+            overflow-y: auto;
+            color: #000;
+            font-size: 13px;
+            line-height: 1.5;
         }
+
         .page-footer {
-            position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center;
-            font-size: 11px; color: #666; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 4px;
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            font-weight: bold;
+            border-top: 1px dashed #ccc;
+            padding-top: 4px;
         }
+
         .notebook-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .notebook-btn { background: #00ff00; color: #000; border: none; padding: 6px 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
     </style>
@@ -239,7 +268,7 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK CHUẨN HIỆU ỨNG FLIPBOOK -->
+    <!-- POPUP NOTEBOOK ĐÃ FIX CẤU TRÚC CONTAINER -->
     <div id="notebook-popup">
         <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
@@ -449,15 +478,45 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* KHỞI TẠO VÀ SỬA LỖI FLIPBOOK TRIỆT ĐỂ */
+        /* KHỞI TẠO PAGE-FLIP ĐÚNG CHUẨN THỜI ĐIỂM */
         let pageFlip = null;
         const totalNotebookPages = 1000;
+
+        function toggleNotebook(show) {
+            const popup = document.getElementById('notebook-popup');
+            popup.classList.toggle('open', show);
+            document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
+
+            if (show) {
+                // Đợi 350ms cho Popup bung hết animation opacity 1 thì mới tạo Notebook
+                setTimeout(() => {
+                    if (!pageFlip) {
+                        initNotebook();
+                    } else {
+                        pageFlip.update();
+                    }
+                }, 350);
+            }
+        }
 
         function initNotebook() {
             const bookContainer = document.getElementById('my-book');
             bookContainer.innerHTML = '';
 
-            // Khởi tạo thư viện PageFlip vào DOM container
+            // 1. Tạo sẵn DOM HTML cho các trang
+            for (let i = 1; i <= totalNotebookPages; i++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'my-page';
+                const savedText = localStorage.getItem(`notebook_page_${i}`) || '';
+                
+                pageDiv.innerHTML = `
+                    <div class="page-editor" contenteditable="true" oninput="saveNotebookContent(${i}, this)">${savedText}</div>
+                    <div class="page-footer">Trang ${i} / ${totalNotebookPages}</div>
+                `;
+                bookContainer.appendChild(pageDiv);
+            }
+
+            // 2. Tải PageFlip trực tiếp từ HTML Container đã hiển thị
             pageFlip = new St.PageFlip(bookContainer, {
                 width: 280,
                 height: 360,
@@ -471,43 +530,12 @@
                 mobileScrollSupport: false
             });
 
-            // Tạo danh sách DOM Element các trang
-            const pagesElements = [];
-            for (let i = 1; i <= totalNotebookPages; i++) {
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'page';
-                const savedText = localStorage.getItem(`notebook_page_${i}`) || '';
-                
-                pageDiv.innerHTML = `
-                    <div class="page-editor" contenteditable="true" oninput="saveNotebookContent(${i}, this)">${savedText}</div>
-                    <div class="page-footer">Trang ${i} / ${totalNotebookPages}</div>
-                `;
-                pagesElements.push(pageDiv);
-            }
-
-            // Load các phần tử trang vào flipbook
-            pageFlip.loadFromHTML(pagesElements);
+            pageFlip.loadFromHTML(document.querySelectorAll('.my-page'));
 
             pageFlip.on('flip', (e) => {
                 const currentPage = e.data + 1;
                 document.getElementById('notebook-page-info').innerText = `Trang ${currentPage} / ${totalNotebookPages}`;
             });
-        }
-
-        function toggleNotebook(show) {
-            const popup = document.getElementById('notebook-popup');
-            popup.classList.toggle('open', show);
-            document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
-
-            if (show) {
-                setTimeout(() => {
-                    if (!pageFlip) {
-                        initNotebook();
-                    } else {
-                        pageFlip.update();
-                    }
-                }, 300);
-            }
         }
 
         function saveNotebookContent(pageIndex, element) {
