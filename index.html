@@ -82,13 +82,22 @@
         }
         #search-note-input:focus { border-color: #00ff00; }
 
-        #about-popup, #how-to-popup, #notebook-popup { 
+        #about-popup, #how-to-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 340px; max-height: 85vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00;
             border-radius: 15px; padding: 20px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
-        #about-popup.open, #how-to-popup.open, #notebook-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-        
+        #about-popup.open, #how-to-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+
+        /* KHUNG POPUP SỔ TAY CHỐNG TRÀN VĂN BẢN */
+        #notebook-popup { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
+            width: 340px; height: 420px; max-height: 90vh; background: #1e1e1e; border: 2px solid #00ff00;
+            border-radius: 15px; padding: 15px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
+            box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+        }
+        #notebook-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+
         #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
 
@@ -150,16 +159,16 @@
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* KHUNG CHỨA TRANG SỔ TAY - HIỆU ỨNG SLIDE POWERPOINT */
+        /* KHUNG KHỐNG CHẾ HOÀN TOÀN TỜ GIẤY SỔ TAY */
         #book-wrapper {
             width: 100%;
-            height: 320px;
-            margin: 10px 0;
+            height: 290px;
             position: relative;
             overflow: hidden;
             background: #111;
             border-radius: 10px;
             border: 1px solid #333;
+            box-sizing: border-box;
         }
         
         .ppt-page {
@@ -168,7 +177,7 @@
             width: 100%; height: 100%;
             background-color: #ffffff;
             color: #000000;
-            padding: 15px;
+            padding: 12px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -177,9 +186,9 @@
             transform: translateY(100%);
             opacity: 0;
             pointer-events: none;
+            overflow: hidden;
         }
 
-        /* Các trạng thái Slide PowerPoint */
         .ppt-page.active {
             transform: translateY(0);
             opacity: 1;
@@ -199,9 +208,11 @@
             z-index: 1;
         }
 
+        /* VÙNG GÕ VĂN BẢN TỰ ĐỘNG HIỆN THANH CUỘN NẾU GÕ DÀI - KHÔNG BAO GIỜ TRÀN */
         .page-editor {
             width: 100%;
-            height: 250px;
+            flex-grow: 1;
+            max-height: 230px;
             outline: none;
             word-break: break-word;
             overflow-y: auto;
@@ -211,7 +222,13 @@
             background: #fff;
             border: none;
             box-sizing: border-box;
+            padding-right: 4px;
         }
+
+        /* Decor thanh cuộn bên trong tờ giấy */
+        .page-editor::-webkit-scrollbar { width: 5px; }
+        .page-editor::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        .page-editor::-webkit-scrollbar-thumb:hover { background: #888; }
 
         .page-footer {
             width: 100%;
@@ -219,12 +236,14 @@
             font-size: 11px;
             color: #888;
             font-weight: bold;
-            border-top: 1px dashed #eee;
-            padding-top: 6px;
+            border-top: 1px dashed #ddd;
+            padding-top: 4px;
+            margin-top: 4px;
+            flex-shrink: 0;
         }
 
-        .notebook-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .notebook-btn { background: #00ff00; color: #000; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .notebook-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .notebook-btn { background: #00ff00; color: #000; border: none; padding: 6px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 12px; }
         .notebook-btn:active { transform: scale(0.95); }
     </style>
 </head>
@@ -292,18 +311,18 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK VỚI HIỆU ỨNG SLIDE UP POWERPOINT -->
+    <!-- POPUP NOTEBOOK ĐÃ FIX LOẠI BỎ HOÀN TOÀN LỖI TRÀN CHỮ -->
     <div id="notebook-popup">
-        <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001;">✕</span>
-        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
+        <span onclick="toggleNotebook(false)" style="position: absolute; top: 8px; right: 12px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001; font-size: 16px;">✕</span>
+        <h3 style="color: #00ff00; margin: 0 0 8px 0; text-align: center; font-size: 16px;">Note Book 📙</h3>
         
         <div id="book-wrapper">
-            <!-- Render động bằng Javascript -->
+            <!-- Render các trang notebook ở đây -->
         </div>
 
         <div class="notebook-controls">
             <button class="notebook-btn" onclick="prevPPTPage()">◄ Trang trước</button>
-            <span id="notebook-page-info" style="color: #00ff00; font-weight: bold; font-size: 13px;">Trang 1 / 1000</span>
+            <span id="notebook-page-info" style="color: #00ff00; font-weight: bold; font-size: 12px;">Trang 1 / 1000</span>
             <button class="notebook-btn" onclick="nextPPTPage()">Trang sau ►</button>
         </div>
     </div>
@@ -502,7 +521,7 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* CƠ CHẾ SỔ TAY - HIỆU ỨNG SLIDE BỐC TRANG LÊN TƯƠNG TỰ POWERPOINT */
+        /* SỔ TAY CHỐNG TRÀN VĂN BẢN */
         let currentPPTPageIndex = 1;
         const maxNotebookPages = 1000;
         let isNotebookInited = false;
@@ -530,7 +549,7 @@
                 const savedText = localStorage.getItem(`notebook_page_${i}`) || '';
                 
                 page.innerHTML = `
-                    <div class="page-editor" contenteditable="true" oninput="savePPTNotebook(${i}, this)">${savedText}</div>
+                    <div class="page-editor" contenteditable="true" oninput="savePPTNotebook(${i}, this)" placeholder="Gõ ghi chú tại đây...">${savedText}</div>
                     <div class="page-footer">Trang ${i} / ${maxNotebookPages}</div>
                 `;
                 wrapper.appendChild(page);
