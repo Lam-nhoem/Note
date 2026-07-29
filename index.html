@@ -208,13 +208,14 @@
             z-index: 1;
         }
 
-        /* VÙNG GÕ VĂN BẢN TỰ ĐỘNG HIỆN THANH CUỘN NẾU GÕ DÀI - KHÔNG BAO GIỜ TRÀN */
+        /* VÙNG GÕ VĂN BẢN HỖ TRỢ XUỐNG DÒNG MƯỢT VÀ HIỆN THANH CUỘN */
         .page-editor {
             width: 100%;
             flex-grow: 1;
             max-height: 230px;
             outline: none;
             word-break: break-word;
+            white-space: pre-wrap;
             overflow-y: auto;
             color: #000;
             font-size: 13px;
@@ -311,7 +312,7 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK ĐÃ FIX LOẠI BỎ HOÀN TOÀN LỖI TRÀN CHỮ -->
+    <!-- POPUP NOTEBOOK ĐÃ FIX CHỐNG TRÀN VÀ HỖ TRỢ XUỐNG DÒNG -->
     <div id="notebook-popup">
         <span onclick="toggleNotebook(false)" style="position: absolute; top: 8px; right: 12px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001; font-size: 16px;">✕</span>
         <h3 style="color: #00ff00; margin: 0 0 8px 0; text-align: center; font-size: 16px;">Note Book 📙</h3>
@@ -489,7 +490,7 @@
             isPanning = true;
             const cX = e.touches ? e.touches[0].clientX : e.clientX;
             const cY = e.touches ? e.touches[0].clientY : e.clientY;
-            startX = cX - wallLeft; startY = cY - top;
+            startX = cX - wallLeft; startY = cY - wallTop;
         };
         const handleMove = (e) => {
             if (e.target.closest('#feedback-list-container, #notebook-popup')) return;
@@ -521,7 +522,7 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* SỔ TAY CHỐNG TRÀN VĂN BẢN */
+        /* SỔ TAY - ĐÃ FIX KHÔNG TRÀN & XUỐNG DÒNG MƯỢT MÀ */
         let currentPPTPageIndex = 1;
         const maxNotebookPages = 1000;
         let isNotebookInited = false;
@@ -557,7 +558,8 @@
         }
 
         function savePPTNotebook(pageIndex, element) {
-            localStorage.setItem(`notebook_page_${pageIndex}`, element.innerText);
+            // Dùng innerHTML để lưu chuẩn cấu trúc xuống dòng không bị nhảy con trỏ
+            localStorage.setItem(`notebook_page_${pageIndex}`, element.innerHTML);
         }
 
         function nextPPTPage() {
