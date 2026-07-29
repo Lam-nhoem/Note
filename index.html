@@ -27,7 +27,6 @@
         #guide-box { position: fixed; top: 20px; left: 20px; width: fit-content; background: rgba(30, 30, 30, 0.9); border: 1px solid #444; border-radius: 10px; padding: 12px 18px; z-index: 2000; font-size: 13px; }
         #guide-box h3 { margin: 0 0 5px 0; color: #00ff00; font-size: 16px; }
 
-        /* THÔNG BÁO HƯỚNG DẪN */
         #menu-hint {
             position: fixed; top: 25px; right: 75px; 
             background: #00ff00; color: #000; padding: 6px 12px; 
@@ -78,7 +77,6 @@
         .menu-section { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
         .menu-section h4 { margin: 0 0 5px; color: #00ff00; font-size: 14px; }
 
-        /* TỐI ƯU CSS CHO Ô TÌM KIẾM TRONG MENU TRÊN DI ĐỘNG/PC */
         #search-note-input { 
             background: #222; border: 1px solid #444; color: #00ff00; padding: 8px 12px; 
             border-radius: 6px; width: 100%; font-size: 13px; outline: none; 
@@ -123,7 +121,6 @@
         }
         .about-link { color: #00d4ff; text-decoration: none; }
 
-        /* CSS KHU VỰC ĐÁNH GIÁ */
         #feedback-list-container {
             width: 100%; max-height: 220px; overflow-y: auto; margin-top: 10px; padding-right: 5px; border-top: 1px dashed #333;
             box-sizing: border-box; -webkit-overflow-scrolling: touch; position: relative; z-index: 8100;
@@ -136,7 +133,6 @@
         .feedback-item .meta-info { display: flex; justify-content: space-between; font-size: 11px; color: #888; margin-bottom: 4px; pointer-events: none; }
         .feedback-item .user-name { color: #00ff00; font-weight: bold; pointer-events: none; }
 
-        /* POPUP GỢI Ý Ý KIẾN ĐÁNH GIÁ */
         #feedback-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 320px; background: #161616; border: 2px solid #00ff00; border-radius: 12px; padding: 25px;
@@ -156,17 +152,25 @@
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* CSS DÀNH CHO SỔ TAY FLIPBOOK LẬT TRANG 3D */
+        /* FIXED CSS DÀNH CHO SỔ TAY FLIPBOOK LẬT TRANG 3D */
         #book-wrapper {
-            width: 280px; height: 360px; margin: 10px auto; position: relative;
+            width: 280px; height: 360px; margin: 10px auto; position: relative; overflow: hidden;
+        }
+        #my-book {
+            width: 100%; height: 100%; position: relative;
         }
         .page {
+            width: 280px; height: 360px;
             background-color: #fff; color: #000; padding: 15px; box-sizing: border-box;
             border: 1px solid #ccc; font-size: 13px; line-height: 1.5; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: space-between;
+            display: none; /* Ẩn trang khi chưa khởi tạo để chống tràn giao diện */
+            flex-direction: column; justify-content: space-between;
         }
+        /* Style do thư viện PageFlip tự thêm khi mount */
+        .stpage { display: flex !important; }
+        
         .page-editor {
-            width: 100%; height: 290px; outline: none; word-break: break-word; overflow-y: auto;
+            width: 100%; height: 290px; outline: none; word-break: break-word; overflow-y: auto; color: #000;
         }
         .page-footer {
             text-align: center; font-size: 11px; color: #666; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 4px;
@@ -209,7 +213,6 @@
         <div class="menu-section">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleHowTo(true)">Hướng dẫn sử dụng 📖</h4>
         </div>
-        <!-- MỤC NOTEBOOK TRONG MENU -->
         <div class="menu-section">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleNotebook(true)">Note book 📙</h4>
         </div>
@@ -240,7 +243,7 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK VỚI HIỆU ỨNG LẬT TRANG SÁCH -->
+    <!-- POPUP NOTEBOOK VỚI HIỆU ỨNG LẬT TRANG SÁCH PHIÊN BẢN SỬA LỖI -->
     <div id="notebook-popup">
         <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
@@ -450,7 +453,7 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* XỬ LÝ SỔ TAY FLIPBOOK LẬT TRANG 3D */
+        /* LOGIC SỐ TAY FLIPBOOK ĐÃ SỬA LỖI TRÁNH BỊ DÀI HÀNG DỌC */
         let pageFlip = null;
         const totalNotebookPages = 1000;
 
@@ -458,7 +461,7 @@
             const bookContainer = document.getElementById('my-book');
             bookContainer.innerHTML = ''; 
 
-            // Sinh 1000 trang sách
+            // Sinh 1000 trang
             for (let i = 1; i <= totalNotebookPages; i++) {
                 const pageDiv = document.createElement('div');
                 pageDiv.className = 'page';
@@ -472,7 +475,7 @@
                 bookContainer.appendChild(pageDiv);
             }
 
-            // Khởi tạo hiệu ứng PageFlip
+            // Khai báo PageFlip
             pageFlip = new PageFlip.PageFlip(bookContainer, {
                 width: 280,
                 height: 360,
@@ -500,9 +503,14 @@
             document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
 
             if (show) {
-                if (!pageFlip) {
-                    setTimeout(() => { initNotebook(); }, 200);
-                }
+                // Đợi hiệu ứng popup hiển thị xong hoàn toàn rồi mới init để tính đúng kích thước DOM
+                setTimeout(() => {
+                    if (!pageFlip) {
+                        initNotebook();
+                    } else {
+                        pageFlip.updateFromHtml(document.querySelectorAll('.page'));
+                    }
+                }, 350);
             }
         }
 
@@ -600,7 +608,6 @@
             makeDraggable(note, id, currentPath); wall.appendChild(note);
         }
 
-        /* THUẬT TOÁN TÌM KIẾM THEO NGỮ NGHĨA CHUỖI (REALTIME FILTER) */
         function searchNotes() {
             const keyword = document.getElementById('search-note-input').value.toLowerCase().trim();
             const allNotes = document.querySelectorAll('.sticky-note');
