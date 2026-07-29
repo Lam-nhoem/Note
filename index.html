@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- THƯ VIỆN HIỆU ỨNG LẬT TRANG SÁCH 3D -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@0.6.0/dist/js/page-flip.browser.js"></script>
     <style>
         body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
         
@@ -86,8 +88,8 @@
 
         #about-popup, #how-to-popup, #notebook-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
-            width: 340px; max-height: 80vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00;
-            border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
+            width: 340px; max-height: 85vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00;
+            border-radius: 15px; padding: 20px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
         #about-popup.open, #how-to-popup.open, #notebook-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
@@ -154,15 +156,23 @@
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* CSS NOTEBOOK SỔ TAY */
-        #notebook-content {
-            background: #fff; color: #000; padding: 15px; border-radius: 8px; min-height: 250px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2); outline: none; font-size: 14px;
-            line-height: 1.5; margin: 15px 0; border: 1px solid #ccc;
+        /* CSS DÀNH CHO SỔ TAY FLIPBOOK LẬT TRANG 3D */
+        #book-wrapper {
+            width: 280px; height: 360px; margin: 10px auto; position: relative;
         }
-        .notebook-controls { display: flex; justify-content: space-between; align-items: center; }
+        .page {
+            background-color: #fff; color: #000; padding: 15px; box-sizing: border-box;
+            border: 1px solid #ccc; font-size: 13px; line-height: 1.5; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .page-editor {
+            width: 100%; height: 290px; outline: none; word-break: break-word; overflow-y: auto;
+        }
+        .page-footer {
+            text-align: center; font-size: 11px; color: #666; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 4px;
+        }
+        .notebook-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .notebook-btn { background: #00ff00; color: #000; border: none; padding: 6px 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        #notebook-page-info { color: #00ff00; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -199,7 +209,7 @@
         <div class="menu-section">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleHowTo(true)">Hướng dẫn sử dụng 📖</h4>
         </div>
-        <!-- MỤC NOTEBOOK ĐƯỢC CHÈN BÊN DƯỚI HƯỚNG DẪN SỬ DỤNG -->
+        <!-- MỤC NOTEBOOK TRONG MENU -->
         <div class="menu-section">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleNotebook(true)">Note book 📙</h4>
         </div>
@@ -230,17 +240,19 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK SỔ TAY 1000 TRANG -->
+    <!-- POPUP NOTEBOOK VỚI HIỆU ỨNG LẬT TRANG SÁCH -->
     <div id="notebook-popup">
-        <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
+        <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
         
-        <div id="notebook-content" contenteditable="true" oninput="saveNotebookPage()"></div>
+        <div id="book-wrapper">
+            <div id="my-book"></div>
+        </div>
 
         <div class="notebook-controls">
-            <button class="notebook-btn" onclick="changeNotebookPage(-1)">Trang trước</button>
-            <span id="notebook-page-info">Trang 1 / 1000</span>
-            <button class="notebook-btn" onclick="changeNotebookPage(1)">Trang sau</button>
+            <button class="notebook-btn" onclick="prevPage()">Trang trước</button>
+            <span id="notebook-page-info" style="color: #00ff00; font-weight: bold; font-size: 13px;">Trang 1 / 1000</span>
+            <button class="notebook-btn" onclick="nextPage()">Trang sau</button>
         </div>
     </div>
 
@@ -400,7 +412,7 @@
         let initialDistance = null, initialScale = 1;
         const getDistance = (touches) => Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
         const handleStart = (e) => {
-            if (e.target.closest('#feedback-list-container')) return;
+            if (e.target.closest('#feedback-list-container, #notebook-popup')) return;
             if(e.touches && e.touches.length === 2) { isPanning = false; initialDistance = getDistance(e.touches); initialScale = scale; return; }
             if(e.target !== viewport && e.target !== wall) return;
             isPanning = true;
@@ -409,7 +421,7 @@
             startX = cX - wallLeft; startY = cY - wallTop;
         };
         const handleMove = (e) => {
-            if (e.target.closest('#feedback-list-container')) return;
+            if (e.target.closest('#feedback-list-container, #notebook-popup')) return;
             if (e.touches && e.touches.length === 2) {
                 e.preventDefault(); const currentDistance = getDistance(e.touches);
                 if (initialDistance) { const delta = currentDistance / initialDistance; scale = Math.min(Math.max(0.1, initialScale * delta), 4); updateWallTransform(); }
@@ -428,7 +440,7 @@
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
         window.addEventListener('wheel', (e) => {
-            if (e.target.closest('#feedback-list-container')) return; 
+            if (e.target.closest('#feedback-list-container, #notebook-popup')) return; 
             e.preventDefault(); scale -= e.deltaY * 0.001; scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
 
@@ -438,33 +450,72 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* XỬ LÝ SỔ TAY NOTEBOOK 1000 TRANG */
-        let currentNotebookPage = 1;
-        const maxNotebookPages = 1000;
+        /* XỬ LÝ SỔ TAY FLIPBOOK LẬT TRANG 3D */
+        let pageFlip = null;
+        const totalNotebookPages = 1000;
+
+        function initNotebook() {
+            const bookContainer = document.getElementById('my-book');
+            bookContainer.innerHTML = ''; 
+
+            // Sinh 1000 trang sách
+            for (let i = 1; i <= totalNotebookPages; i++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                
+                const savedText = localStorage.getItem(`notebook_page_${i}`) || '';
+                
+                pageDiv.innerHTML = `
+                    <div class="page-editor" contenteditable="true" oninput="saveNotebookContent(${i}, this)">${savedText}</div>
+                    <div class="page-footer">Trang ${i} / ${totalNotebookPages}</div>
+                `;
+                bookContainer.appendChild(pageDiv);
+            }
+
+            // Khởi tạo hiệu ứng PageFlip
+            pageFlip = new PageFlip.PageFlip(bookContainer, {
+                width: 280,
+                height: 360,
+                size: "fixed",
+                minWidth: 280,
+                maxWidth: 280,
+                minHeight: 360,
+                maxHeight: 360,
+                maxShadowOpacity: 0.5,
+                showCover: false,
+                mobileScrollSupport: false
+            });
+
+            pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+            pageFlip.on('flip', (e) => {
+                const currentPage = e.data + 1;
+                document.getElementById('notebook-page-info').innerText = `Trang ${currentPage} / ${totalNotebookPages}`;
+            });
+        }
 
         function toggleNotebook(show) {
-            document.getElementById('notebook-popup').classList.toggle('open', show);
+            const popup = document.getElementById('notebook-popup');
+            popup.classList.toggle('open', show);
             document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
-            if (show) loadNotebookPage();
-        }
 
-        function loadNotebookPage() {
-            const savedText = localStorage.getItem(`notebook_page_${currentNotebookPage}`) || "";
-            document.getElementById('notebook-content').innerText = savedText;
-            document.getElementById('notebook-page-info').innerText = `Trang ${currentNotebookPage} / ${maxNotebookPages}`;
-        }
-
-        function saveNotebookPage() {
-            const text = document.getElementById('notebook-content').innerText;
-            localStorage.setItem(`notebook_page_${currentNotebookPage}`, text);
-        }
-
-        function changeNotebookPage(direction) {
-            const newPage = currentNotebookPage + direction;
-            if (newPage >= 1 && newPage <= maxNotebookPages) {
-                currentNotebookPage = newPage;
-                loadNotebookPage();
+            if (show) {
+                if (!pageFlip) {
+                    setTimeout(() => { initNotebook(); }, 200);
+                }
             }
+        }
+
+        function saveNotebookContent(pageIndex, element) {
+            localStorage.setItem(`notebook_page_${pageIndex}`, element.innerText);
+        }
+
+        function nextPage() {
+            if (pageFlip) pageFlip.flipNext();
+        }
+
+        function prevPage() {
+            if (pageFlip) pageFlip.flipPrev();
         }
 
         document.getElementById('feedback-form').addEventListener('submit', function(e) {
