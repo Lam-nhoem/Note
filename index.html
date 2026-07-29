@@ -84,12 +84,12 @@
         }
         #search-note-input:focus { border-color: #00ff00; }
 
-        #about-popup, #how-to-popup { 
+        #about-popup, #how-to-popup, #notebook-popup { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); 
             width: 340px; max-height: 80vh; overflow-y: auto; background: #1e1e1e; border: 2px solid #00ff00;
             border-radius: 15px; padding: 25px; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s;
         }
-        #about-popup.open, #how-to-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+        #about-popup.open, #how-to-popup.open, #notebook-popup.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
         
         #page-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 7500; display: none; }
         #eye-care-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 150, 0, 0.15); z-index: 9999; pointer-events: none; display: none; mix-blend-mode: multiply; }
@@ -153,6 +153,16 @@
         
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+
+        /* CSS NOTEBOOK SỔ TAY */
+        #notebook-content {
+            background: #fff; color: #000; padding: 15px; border-radius: 8px; min-height: 250px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2); outline: none; font-size: 14px;
+            line-height: 1.5; margin: 15px 0; border: 1px solid #ccc;
+        }
+        .notebook-controls { display: flex; justify-content: space-between; align-items: center; }
+        .notebook-btn { background: #00ff00; color: #000; border: none; padding: 6px 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        #notebook-page-info { color: #00ff00; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -189,6 +199,10 @@
         <div class="menu-section">
             <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleHowTo(true)">Hướng dẫn sử dụng 📖</h4>
         </div>
+        <!-- MỤC NOTEBOOK ĐƯỢC CHÈN BÊN DƯỚI HƯỚNG DẪN SỬ DỤNG -->
+        <div class="menu-section">
+            <h4 style="cursor: pointer; color: #00ff00; margin: 0;" onclick="toggleNotebook(true)">Note book 📙</h4>
+        </div>
         <div class="menu-section">
             <h4 style="cursor: pointer; text-decoration: underline; color: #00ff00; margin: 0;" onclick="toggleAbout(true)">Về chúng tôi ⓘ</h4>
         </div>
@@ -213,6 +227,20 @@
             <p> <b>Xóa Note:</b> Nhấn đúp (Double click) vào tờ Note để xóa.</p>
             <p> <b>Phòng cá nhân:</b> Nhấn nút "Phòng" để chuyển sang chế độ riêng tư (cần nhập Mã ID).</p>
             <p> <b>Feedback:</b> Hãy để lại đánh giá về trải nghiệm, những điều bạn muốn đóng góp, hay mong muốn chúng tôi thay đổi ...</p>
+        </div>
+    </div>
+
+    <!-- POPUP NOTEBOOK SỔ TAY 1000 TRANG -->
+    <div id="notebook-popup">
+        <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold;">✕</span>
+        <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
+        
+        <div id="notebook-content" contenteditable="true" oninput="saveNotebookPage()"></div>
+
+        <div class="notebook-controls">
+            <button class="notebook-btn" onclick="changeNotebookPage(-1)">Trang trước</button>
+            <span id="notebook-page-info">Trang 1 / 1000</span>
+            <button class="notebook-btn" onclick="changeNotebookPage(1)">Trang sau</button>
         </div>
     </div>
 
@@ -404,11 +432,40 @@
             e.preventDefault(); scale -= e.deltaY * 0.001; scale = Math.min(Math.max(0.1, scale), 4); updateWallTransform();
         }, {passive: false});
 
-        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); toggleHowTo(false); toggleFeedbackPopup(false); }
+        function closeMenu() { document.getElementById('menu-panel').classList.remove('open'); document.getElementById('page-overlay').style.display = 'none'; toggleAbout(false); toggleHowTo(false); toggleFeedbackPopup(false); toggleNotebook(false); }
         function toggleEyeCare(cb) { document.getElementById('eye-care-overlay').style.display = cb.checked ? 'block' : 'none'; }
         function toggleAbout(show) { document.getElementById('about-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
+
+        /* XỬ LÝ SỔ TAY NOTEBOOK 1000 TRANG */
+        let currentNotebookPage = 1;
+        const maxNotebookPages = 1000;
+
+        function toggleNotebook(show) {
+            document.getElementById('notebook-popup').classList.toggle('open', show);
+            document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
+            if (show) loadNotebookPage();
+        }
+
+        function loadNotebookPage() {
+            const savedText = localStorage.getItem(`notebook_page_${currentNotebookPage}`) || "";
+            document.getElementById('notebook-content').innerText = savedText;
+            document.getElementById('notebook-page-info').innerText = `Trang ${currentNotebookPage} / ${maxNotebookPages}`;
+        }
+
+        function saveNotebookPage() {
+            const text = document.getElementById('notebook-content').innerText;
+            localStorage.setItem(`notebook_page_${currentNotebookPage}`, text);
+        }
+
+        function changeNotebookPage(direction) {
+            const newPage = currentNotebookPage + direction;
+            if (newPage >= 1 && newPage <= maxNotebookPages) {
+                currentNotebookPage = newPage;
+                loadNotebookPage();
+            }
+        }
 
         document.getElementById('feedback-form').addEventListener('submit', function(e) {
             e.preventDefault();
