@@ -208,7 +208,7 @@
             z-index: 1;
         }
 
-        /* VÙNG GÕ VĂN BẢN HỖ TRỢ XUỐNG DÒNG MƯỢT VÀ HIỆN THANH CUỘN */
+        /* VÙNG GÕ VĂN BẢN - THÊM DÒNG KẺ MÀU ĐEN MỜ NHƯ TẬP HỌC SINH */
         .page-editor {
             width: 100%;
             flex-grow: 1;
@@ -219,8 +219,13 @@
             overflow-y: auto;
             color: #000;
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 24px; /* Chiều cao mỗi dòng chữ */
             background: #fff;
+            
+            /* TẠO ĐƯỜNG KẺ NGANG MÀU ĐEN MỜ MỖI 24px */
+            background-image: linear-gradient(transparent 23px, rgba(0, 0, 0, 0.15) 24px);
+            background-size: 100% 24px;
+            
             border: none;
             box-sizing: border-box;
             padding-right: 4px;
@@ -241,6 +246,7 @@
             padding-top: 4px;
             margin-top: 4px;
             flex-shrink: 0;
+            background: #fff;
         }
 
         .notebook-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; }
@@ -312,7 +318,6 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK ĐÃ FIX CHỐNG TRÀN VÀ HỖ TRỢ XUỐNG DÒNG -->
     <div id="notebook-popup">
         <span onclick="toggleNotebook(false)" style="position: absolute; top: 8px; right: 12px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001; font-size: 16px;">✕</span>
         <h3 style="color: #00ff00; margin: 0 0 8px 0; text-align: center; font-size: 16px;">Note Book 📙</h3>
@@ -522,7 +527,7 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* SỔ TAY - ĐÃ FIX KHÔNG TRÀN & XUỐNG DÒNG MƯỢT MÀ */
+        /* SỔ TAY CHỐNG TRÀN VÀ XUỐNG DÒNG MƯỢT CÓ DÒNG KẺ NGANG */
         let currentPPTPageIndex = 1;
         const maxNotebookPages = 1000;
         let isNotebookInited = false;
@@ -558,7 +563,6 @@
         }
 
         function savePPTNotebook(pageIndex, element) {
-            // Dùng innerHTML để lưu chuẩn cấu trúc xuống dòng không bị nhảy con trỏ
             localStorage.setItem(`notebook_page_${pageIndex}`, element.innerHTML);
         }
 
