@@ -8,8 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- THƯ VIỆN HIỆU ỨNG LẬT TRANG SÁCH 3D -->
-    <script src="https://cdn.jsdelivr.net/npm/page-flip@0.6.0/dist/js/page-flip.browser.js"></script>
     <style>
         body { background-color: #000; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; color: white; touch-action: none; }
         
@@ -152,55 +150,82 @@
         #feedback-text { width: 100%; height: 70px; background: #222; border: 1px solid #333; color: #fff; border-radius: 6px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; margin-bottom: 15px; }
         #submit-feedback-btn { width: 100%; background: #00ff00; color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
 
-        /* KHUNG CONTAINER VÀ CÁC TRANG CỦA SỔ TAY */
+        /* KHUNG CHỨA TRANG SỔ TAY - HIỆU ỨNG SLIDE POWERPOINT */
         #book-wrapper {
-            width: 280px;
-            height: 360px;
-            margin: 10px auto;
+            width: 100%;
+            height: 320px;
+            margin: 10px 0;
             position: relative;
+            overflow: hidden;
+            background: #111;
+            border-radius: 10px;
+            border: 1px solid #333;
         }
         
-        .my-page {
-            width: 280px;
-            height: 360px;
+        .ppt-page {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background-color: #ffffff;
             color: #000000;
             padding: 15px;
             box-sizing: border-box;
-            border: 1px solid #ccc;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Các trạng thái Slide PowerPoint */
+        .ppt-page.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 2;
+        }
+
+        .ppt-page.slide-out-up {
+            transform: translateY(-100%);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .ppt-page.slide-out-down {
+            transform: translateY(100%);
+            opacity: 0;
+            z-index: 1;
         }
 
         .page-editor {
             width: 100%;
-            height: 280px;
+            height: 250px;
             outline: none;
             word-break: break-word;
             overflow-y: auto;
             color: #000;
             font-size: 13px;
             line-height: 1.5;
-            background: #fdfdfd;
-            border: 1px solid #eee;
-            padding: 5px;
+            background: #fff;
+            border: none;
             box-sizing: border-box;
         }
 
         .page-footer {
-            position: absolute;
-            bottom: 8px;
-            left: 0;
             width: 100%;
             text-align: center;
             font-size: 11px;
-            color: #666;
+            color: #888;
             font-weight: bold;
-            border-top: 1px dashed #ccc;
-            padding-top: 4px;
+            border-top: 1px dashed #eee;
+            padding-top: 6px;
         }
 
         .notebook-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .notebook-btn { background: #00ff00; color: #000; border: none; padding: 6px 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .notebook-btn { background: #00ff00; color: #000; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .notebook-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -267,19 +292,19 @@
         </div>
     </div>
 
-    <!-- POPUP NOTEBOOK VỚI EVENT LẬT TRANG ĐÃ FIX MƯỢT MA -->
+    <!-- POPUP NOTEBOOK VỚI HIỆU ỨNG SLIDE UP POWERPOINT -->
     <div id="notebook-popup">
         <span onclick="toggleNotebook(false)" style="position: absolute; top: 10px; right: 15px; cursor: pointer; color: #00ff00; font-weight: bold; z-index: 10001;">✕</span>
         <h3 style="color: #00ff00; margin-top: 0; text-align: center;">Note Book 📙</h3>
         
         <div id="book-wrapper">
-            <div id="my-book"></div>
+            <!-- Render động bằng Javascript -->
         </div>
 
         <div class="notebook-controls">
-            <button class="notebook-btn" onclick="prevPage()">Trang trước</button>
+            <button class="notebook-btn" onclick="prevPPTPage()">◄ Trang trước</button>
             <span id="notebook-page-info" style="color: #00ff00; font-weight: bold; font-size: 13px;">Trang 1 / 1000</span>
-            <button class="notebook-btn" onclick="nextPage()">Trang sau</button>
+            <button class="notebook-btn" onclick="nextPPTPage()">Trang sau ►</button>
         </div>
     </div>
 
@@ -477,79 +502,69 @@
         function toggleHowTo(show) { document.getElementById('how-to-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
         function toggleFeedbackPopup(show) { document.getElementById('feedback-popup').classList.toggle('open', show); document.getElementById('page-overlay').style.display = show ? 'block' : 'none'; }
 
-        /* SỬA HOÀN TOÀN TÍNH NĂNG LẬT TRANG SÁCH PHÙ HỢP CẢ EDIT TEXT */
-        let pageFlip = null;
-        const totalNotebookPages = 1000;
+        /* CƠ CHẾ SỔ TAY - HIỆU ỨNG SLIDE BỐC TRANG LÊN TƯƠNG TỰ POWERPOINT */
+        let currentPPTPageIndex = 1;
+        const maxNotebookPages = 1000;
+        let isNotebookInited = false;
 
         function toggleNotebook(show) {
             const popup = document.getElementById('notebook-popup');
             popup.classList.toggle('open', show);
             document.getElementById('page-overlay').style.display = show ? 'block' : 'none';
 
-            if (show) {
-                setTimeout(() => {
-                    if (!pageFlip) {
-                        initNotebook();
-                    } else {
-                        pageFlip.update();
-                    }
-                }, 300);
+            if (show && !isNotebookInited) {
+                initPPTNotebook();
+                isNotebookInited = true;
             }
         }
 
-        function initNotebook() {
-            const bookContainer = document.getElementById('my-book');
-            bookContainer.innerHTML = '';
+        function initPPTNotebook() {
+            const wrapper = document.getElementById('book-wrapper');
+            wrapper.innerHTML = '';
 
-            // 1. Tạo sẵn các trang DOM có chặn event kéo để không ảnh hưởng flip
-            for (let i = 1; i <= totalNotebookPages; i++) {
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'my-page';
+            for (let i = 1; i <= maxNotebookPages; i++) {
+                const page = document.createElement('div');
+                page.className = `ppt-page ${i === 1 ? 'active' : ''}`;
+                page.id = `ppt-page-${i}`;
+                
                 const savedText = localStorage.getItem(`notebook_page_${i}`) || '';
                 
-                pageDiv.innerHTML = `
-                    <div class="page-editor" contenteditable="true" 
-                         onmousedown="event.stopPropagation()" 
-                         ontouchstart="event.stopPropagation()" 
-                         oninput="saveNotebookContent(${i}, this)">${savedText}</div>
-                    <div class="page-footer">Trang ${i} / ${totalNotebookPages}</div>
+                page.innerHTML = `
+                    <div class="page-editor" contenteditable="true" oninput="savePPTNotebook(${i}, this)">${savedText}</div>
+                    <div class="page-footer">Trang ${i} / ${maxNotebookPages}</div>
                 `;
-                bookContainer.appendChild(pageDiv);
+                wrapper.appendChild(page);
             }
-
-            // 2. Khởi tạo đối tượng lật trang PageFlip
-            pageFlip = new St.PageFlip(bookContainer, {
-                width: 280,
-                height: 360,
-                size: "fixed",
-                minWidth: 280,
-                maxWidth: 280,
-                minHeight: 360,
-                maxHeight: 360,
-                maxShadowOpacity: 0.5,
-                showCover: false,
-                mobileScrollSupport: true,
-                clickEventForward: false
-            });
-
-            pageFlip.loadFromHTML(document.querySelectorAll('.my-page'));
-
-            pageFlip.on('flip', (e) => {
-                const currentPage = e.data + 1;
-                document.getElementById('notebook-page-info').innerText = `Trang ${currentPage} / ${totalNotebookPages}`;
-            });
         }
 
-        function saveNotebookContent(pageIndex, element) {
+        function savePPTNotebook(pageIndex, element) {
             localStorage.setItem(`notebook_page_${pageIndex}`, element.innerText);
         }
 
-        function nextPage() {
-            if (pageFlip) pageFlip.flipNext();
+        function nextPPTPage() {
+            if (currentPPTPageIndex >= maxNotebookPages) return;
+            
+            const curr = document.getElementById(`ppt-page-${currentPPTPageIndex}`);
+            currentPPTPageIndex++;
+            const next = document.getElementById(`ppt-page-${currentPPTPageIndex}`);
+
+            curr.className = 'ppt-page slide-out-up';
+            next.className = 'ppt-page active';
+
+            document.getElementById('notebook-page-info').innerText = `Trang ${currentPPTPageIndex} / ${maxNotebookPages}`;
         }
 
-        function prevPage() {
-            if (pageFlip) pageFlip.flipPrev();
+        function prevPPTPage() {
+            if (currentPPTPageIndex <= 1) return;
+
+            const curr = document.getElementById(`ppt-page-${currentPPTPageIndex}`);
+            currentPPTPageIndex--;
+            const prev = document.getElementById(`ppt-page-${currentPPTPageIndex}`);
+
+            curr.className = 'ppt-page slide-out-down';
+            prev.className = 'ppt-page active';
+
+            document.getElementById('notebook-page-info').innerText = `Trang ${currentPPTPageIndex} / ${maxNotebookPages}`;
         }
 
         document.getElementById('feedback-form').addEventListener('submit', function(e) {
